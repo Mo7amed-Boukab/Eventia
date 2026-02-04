@@ -19,4 +19,4 @@ import { RefreshJwtStrategy } from './strategies/refresh-jwt.strategy';
   providers: [AuthService, JwtStrategy, RefreshJwtStrategy],
   exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }
