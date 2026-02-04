@@ -1,10 +1,55 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronRight, ArrowLeft } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const LoginPage: React.FC = () => {
+  const router = useRouter();
+  const { login } = useAuth();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    // Basic validation
+    if (!email || !password) {
+      setError("Veuillez remplir tous les champs");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await login(email, password);
+      router.push("/");
+    } catch (err: any) {
+      console.error("Login error:", err);
+
+      if (err.response?.status === 401) {
+        setError("Email ou mot de passe incorrect");
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Une erreur est survenue. Veuillez réessayer.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex bg-white">
       {/* Left Side - Image & Content */}
@@ -22,7 +67,7 @@ const LoginPage: React.FC = () => {
               className="group-hover:-translate-x-1 transition-transform"
             />
             <span className="text-sm font-bold tracking-widest uppercase">
-              Retour à l'accueil
+              Retour à l&apos;accueil
             </span>
           </Link>
 
@@ -76,15 +121,24 @@ const LoginPage: React.FC = () => {
             </p>
           </div>
 
-          <form className="space-y-6">
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-sm">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
                 Email Professionnel
               </label>
               <input
                 type="email"
-                className="w-full px-4 py-2.5 text-sm placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2.5 text-sm text-gray-700 placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
                 placeholder="nom@entreprise.com"
+                disabled={isLoading}
               />
             </div>
 
@@ -102,8 +156,11 @@ const LoginPage: React.FC = () => {
               </div>
               <input
                 type="password"
-                className="w-full px-4 py-2.5 text-sm placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2.5 text-sm text-gray-700 placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
                 placeholder="••••••••"
+                disabled={isLoading}
               />
             </div>
 
@@ -111,14 +168,20 @@ const LoginPage: React.FC = () => {
               <input
                 type="checkbox"
                 className="w-4 h-4 rounded border-gray-200 text-[#C5A059] focus:ring-[#C5A059] accent-[#C5A059]"
+                disabled={isLoading}
               />
               <label className="text-[11px] text-gray-500 font-medium">
                 Rester connecté
               </label>
             </div>
 
-            <button className="w-full bg-[#C5A059] text-white py-3 rounded-sm font-bold tracking-[0.2em] hover:bg-[#b99656] transition-all flex items-center justify-center gap-2 uppercase text-xs shadow-xl mt-4">
-              se connecter <ChevronRight size={16} />
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-[#C5A059] text-white py-3 rounded-sm font-bold tracking-[0.2em] hover:bg-[#b99656] transition-all flex items-center justify-center gap-2 uppercase text-xs shadow-xl mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? "Connexion en cours..." : "se connecter"}{" "}
+              {!isLoading && <ChevronRight size={16} />}
             </button>
           </form>
 

@@ -1,10 +1,74 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronRight, ArrowLeft } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const RegisterPage: React.FC = () => {
+  const router = useRouter();
+  const { register } = useAuth();
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    // Validation
+    if (!firstName || !lastName || !email || !password) {
+      setError("Veuillez remplir tous les champs");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Veuillez entrer une adresse email valide");
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setError("Vous devez accepter les conditions générales");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await register(firstName, lastName, email, password);
+      router.push("/");
+    } catch (err: any) {
+      console.error("Registration error:", err);
+
+      if (err.response?.status === 409) {
+        setError("Cet email est déjà utilisé");
+      } else if (err.response?.data?.message) {
+        if (Array.isArray(err.response.data.message)) {
+          setError(err.response.data.message.join(", "));
+        } else {
+          setError(err.response.data.message);
+        }
+      } else {
+        setError("Une erreur est survenue. Veuillez réessayer.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex bg-white">
       {/* Left Side - Image & Content */}
@@ -22,7 +86,7 @@ const RegisterPage: React.FC = () => {
               className="group-hover:-translate-x-1 transition-transform"
             />
             <span className="text-sm font-bold tracking-widest uppercase">
-              Retour à l'accueil
+              Retour à l&apos;accueil
             </span>
           </Link>
 
@@ -37,11 +101,11 @@ const RegisterPage: React.FC = () => {
               className="text-5xl font-bold mb-6 leading-tight"
               style={{ fontFamily: "serif" }}
             >
-              Rejoignez l'élite des <br /> événements professionnels
+              Rejoignez l&apos;élite des <br /> événements professionnels
             </h1>
             <p className="text-xl font-light text-gray-300 max-w-md italic">
               Accédez à des formations exclusives, des workshops de haut niveau
-              et un réseau d'experts inégalé au Maroc.
+              et un réseau d&apos;experts inégalé au Maroc.
             </p>
           </div>
 
@@ -72,11 +136,17 @@ const RegisterPage: React.FC = () => {
               Créer un compte
             </h2>
             <p className="text-gray-500 text-sm font-light">
-              Commencez votre expérience premium dès aujourd'hui.
+              Commencez votre expérience premium dès aujourd&apos;hui.
             </p>
           </div>
 
-          <form className="space-y-5">
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">
@@ -84,8 +154,11 @@ const RegisterPage: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2.5 text-sm placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="w-full px-4 py-2.5 text-sm text-gray-700 placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
                   placeholder="Entrer votre prenom"
+                  disabled={isLoading}
                 />
               </div>
               <div>
@@ -94,8 +167,11 @@ const RegisterPage: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2.5 text-sm placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="w-full px-4 py-2.5 text-sm text-gray-700 placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
                   placeholder="Entrer votre nom"
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -106,8 +182,11 @@ const RegisterPage: React.FC = () => {
               </label>
               <input
                 type="email"
-                className="w-full px-4 py-2.5 text-sm placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2.5 text-sm text-gray-700 placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
                 placeholder="nom@gmail.com"
+                disabled={isLoading}
               />
             </div>
 
@@ -117,27 +196,38 @@ const RegisterPage: React.FC = () => {
               </label>
               <input
                 type="password"
-                className="w-full px-4 py-2.5 text-sm placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2.5 text-sm text-gray-700 placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
                 placeholder="••••••••"
+                disabled={isLoading}
               />
             </div>
 
             <div className="flex items-start gap-3 text-[11px] text-gray-500 pt-2">
               <input
                 type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
                 className="mt-0.5 w-4 h-4 rounded border-gray-200 text-[#C5A059] focus:ring-[#C5A059] accent-[#C5A059]"
+                disabled={isLoading}
               />
               <span className="leading-tight">
-                J'accepte les{" "}
+                J&apos;accepte les{" "}
                 <a href="#" className="text-[#C5A059] font-bold">
                   Conditions Générales
                 </a>{" "}
-                et j'ai lu la politique de confidentialité.
+                et j&apos;ai lu la politique de confidentialité.
               </span>
             </div>
 
-            <button className="w-full bg-[#C5A059] text-white py-3 rounded-sm font-bold tracking-[0.2em] hover:bg-[#b99656] transition-all flex items-center justify-center gap-2 uppercase text-xs shadow-xl mt-4">
-              s'inscrire <ChevronRight size={16} />
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-[#C5A059] text-white py-3 rounded-sm font-bold tracking-[0.2em] hover:bg-[#b99656] transition-all flex items-center justify-center gap-2 uppercase text-xs shadow-xl mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? "Inscription en cours..." : "s'inscrire"}{" "}
+              {!isLoading && <ChevronRight size={16} />}
             </button>
           </form>
 
