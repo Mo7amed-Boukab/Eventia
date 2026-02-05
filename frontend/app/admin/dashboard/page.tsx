@@ -1,5 +1,5 @@
 import React from "react";
-import { DollarSign, Calendar, Users, TrendingUp } from "lucide-react";
+import { DollarSign, Calendar, Users, TrendingUp, Download } from "lucide-react";
 import StatCard from "@/components/admin/StatCard";
 import DashboardCharts from "@/components/admin/DashboardCharts";
 
@@ -37,7 +37,8 @@ export default function DashboardPage() {
                         Bienvenue sur votre espace de gestion Eventia.
                     </p>
                 </div>
-                <button className="bg-[#1A1A1A] text-white px-5 py-2.5 rounded text-sm font-medium hover:bg-gray-800 transition-colors shadow-lg">
+                <button className="flex items-center bg-white text-[#1A1A1A] px-5 py-2.5 rounded text-sm font-medium hover:text-[#C5A060] transition-colors hover:shadow-lg">
+                    <Download className="w-4 h-4 mr-2" />
                     Télécharger le rapport
                 </button>
             </div>

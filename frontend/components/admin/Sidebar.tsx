@@ -59,7 +59,7 @@ const Sidebar: React.FC = () => {
                         <Link
                             key={item.path}
                             href={item.path}
-                            className={`flex items-center px-4 py-3 rounded transition-all duration-200 group ${isActive(
+                            className={`flex items-center px-4 py-2.5 rounded transition-all duration-200 group ${isActive(
                                 item.path
                             )}`}
                         >
