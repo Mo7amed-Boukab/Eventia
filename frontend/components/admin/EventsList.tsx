@@ -272,7 +272,7 @@ const EventsList: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <Link href={`/events/${event._id}`} className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors bg-white border border-gray-100 rounded">
+                                            <Link href={`/admin/events/${event._id}`} className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors bg-white border border-gray-100 rounded">
                                                 <Eye size={16} />
                                             </Link>
                                             <Link href={`/admin/events/edit/${event._id}`} className="p-1.5 text-gray-400 hover:text-[#C5A059] transition-colors bg-white border border-gray-100 rounded">
