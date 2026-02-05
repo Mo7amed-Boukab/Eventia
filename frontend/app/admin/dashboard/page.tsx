@@ -32,11 +32,11 @@ const ACTIVE_EVENTS = 3;
 
 export default function DashboardPage() {
     return (
-        <div className="p-8 space-y-8">
+        <div className="px-8 py-6 space-y-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h2
-                        className="text-3xl font-semibold text-gray-900"
+                        className="text-2xl font-semibold text-gray-900"
                         style={{ fontFamily: "serif" }}
                     >
                         Vue d&apos;ensemble
