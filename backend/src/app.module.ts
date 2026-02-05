@@ -6,6 +6,7 @@ import databaseConfig from './config/database.config';
 import { DatabaseModule } from './database/mongoose.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -16,8 +17,9 @@ import { UsersModule } from './users/users.module';
     DatabaseModule,
     AuthModule,
     UsersModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
