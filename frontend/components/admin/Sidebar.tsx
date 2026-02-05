@@ -20,8 +20,8 @@ const Sidebar: React.FC = () => {
 
     const isActive = (path: string) => {
         return pathname === path
-            ? "bg-[#C5A059] text-white shadow-lg"
-            : "text-gray-400 hover:text-white hover:bg-white/10";
+            ? "bg-[#C5A059] text-white shadow-lg hover:shadow-[#C5A059]/20"
+            : "text-gray-400 hover:text-white hover:bg-white/10 hover:shadow-lg hover:shadow-black/10";
     };
 
     const navItems = [
@@ -59,7 +59,7 @@ const Sidebar: React.FC = () => {
                         <Link
                             key={item.path}
                             href={item.path}
-                            className={`flex items-center px-4 py-3 rounded-md transition-all duration-200 group ${isActive(
+                            className={`flex items-center px-4 py-3 rounded transition-all duration-200 group ${isActive(
                                 item.path
                             )}`}
                         >
@@ -72,7 +72,7 @@ const Sidebar: React.FC = () => {
                 <p className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-8 mb-4">
                     Système
                 </p>
-                <button className="w-full flex items-center px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                <button className="w-full flex items-center px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 hover:shadow-lg hover:shadow-black/10 rounded transition-colors">
                     <Settings className="w-5 h-5 mr-3" />
                     <span className="font-medium text-sm">Paramètres</span>
                 </button>

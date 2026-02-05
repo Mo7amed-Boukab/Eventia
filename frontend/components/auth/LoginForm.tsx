@@ -12,7 +12,8 @@ const LoginForm: React.FC = () => {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+    const [generalError, setGeneralError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
     // Redirect if already logged in
@@ -26,17 +27,38 @@ const LoginForm: React.FC = () => {
         }
     }, [authLoading, isAuthenticated, user, router]);
 
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        if (name === "email") setEmail(value);
+        if (name === "password") setPassword(value);
+
+        // Clear specific error
+        if (fieldErrors[name]) {
+            setFieldErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[name];
+                return newErrors;
+            });
+        }
+        setGeneralError("");
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError("");
+        setFieldErrors({});
+        setGeneralError("");
 
-        if (!email || !password) {
-            setError("Veuillez remplir tous les champs");
+        const newErrors: Record<string, string> = {};
+        if (!email) newErrors.email = "L'email est obligatoire";
+        if (!password) newErrors.password = "Le mot de passe est obligatoire";
+
+        if (Object.keys(newErrors).length > 0) {
+            setFieldErrors(newErrors);
             return;
         }
 
         if (password.length < 6) {
-            setError("Le mot de passe doit contenir au moins 6 caractères");
+            setFieldErrors({ password: "Le mot de passe doit contenir au moins 6 caractères" });
             return;
         }
 
@@ -48,11 +70,11 @@ const LoginForm: React.FC = () => {
             console.error("Login error:", err);
 
             if (err.response?.status === 401) {
-                setError("Email ou mot de passe incorrect");
+                setGeneralError("Email ou mot de passe incorrect");
             } else if (err.response?.data?.message) {
-                setError(err.response.data.message);
+                setGeneralError(err.response.data.message);
             } else {
-                setError("Une erreur est survenue. Veuillez réessayer.");
+                setGeneralError("Une erreur est survenue. Veuillez réessayer.");
             }
         } finally {
             setIsLoading(false);
@@ -73,25 +95,29 @@ const LoginForm: React.FC = () => {
                 </p>
             </div>
 
-            {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-sm">
-                    <p className="text-red-600 text-sm">{error}</p>
+            {generalError && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-sm animate-in fade-in slide-in-from-top-2">
+                    <p className="text-red-600 text-sm font-medium">{generalError}</p>
                 </div>
             )}
 
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-6" onSubmit={handleSubmit} noValidate>
                 <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
                         Email Professionnel
                     </label>
                     <input
                         type="email"
+                        name="email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-4 py-2.5 text-sm text-gray-700 placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-2.5 text-sm text-gray-700 placeholder:text-gray-300 border ${fieldErrors.email ? 'border-red-500 bg-red-50/10' : 'border-gray-200'} rounded-sm focus:outline-none focus:border-[#C5A059] transition-all`}
                         placeholder="nom@entreprise.com"
                         disabled={isLoading}
                     />
+                    {fieldErrors.email && (
+                        <p className="text-[10px] text-red-500 mt-1 font-medium italic">{fieldErrors.email}</p>
+                    )}
                 </div>
 
                 <div>
@@ -108,12 +134,16 @@ const LoginForm: React.FC = () => {
                     </div>
                     <input
                         type="password"
+                        name="password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full px-4 py-2.5 text-sm text-gray-700 placeholder:text-gray-300 border border-gray-200 rounded-sm focus:outline-none focus:border-[#C5A059] transition-colors"
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-2.5 text-sm text-gray-700 placeholder:text-gray-300 border ${fieldErrors.password ? 'border-red-500 bg-red-50/10' : 'border-gray-200'} rounded-sm focus:outline-none focus:border-[#C5A059] transition-all`}
                         placeholder="••••••••"
                         disabled={isLoading}
                     />
+                    {fieldErrors.password && (
+                        <p className="text-[10px] text-red-500 mt-1 font-medium italic">{fieldErrors.password}</p>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -122,7 +152,7 @@ const LoginForm: React.FC = () => {
                         className="w-4 h-4 rounded border-gray-200 text-[#C5A059] focus:ring-[#C5A059] accent-[#C5A059]"
                         disabled={isLoading}
                     />
-                    <label className="text-[11px] text-gray-500 font-medium">
+                    <label className="text-[11px] text-gray-500 font-medium font-serif">
                         Rester connecté
                     </label>
                 </div>
@@ -137,7 +167,7 @@ const LoginForm: React.FC = () => {
                 </button>
             </form>
 
-            <div className="mt-4 text-center lg:text-center">
+            <div className="mt-4 text-center">
                 <p className="text-gray-500 text-sm font-light">
                     Nouveau sur Eventia ?{" "}
                     <Link
