@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
 import Sidebar from "@/components/admin/Sidebar";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function AdminLayout({
     children,
@@ -7,11 +10,13 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-h-screen bg-[#F8F9FA]">
-            <Sidebar />
-            <div className="pl-64">
-                {children}
+        <ProtectedRoute requireAdmin={true}>
+            <div className="min-h-screen bg-[#F8F9FA]">
+                <Sidebar />
+                <div className="pl-64">
+                    {children}
+                </div>
             </div>
-        </div>
+        </ProtectedRoute>
     );
 }

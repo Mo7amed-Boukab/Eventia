@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight, ArrowLeft } from "lucide-react";
@@ -8,12 +8,23 @@ import { useAuth } from "@/context/AuthContext";
 
 const LoginPage: React.FC = () => {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Rediriger si déjà connecté
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && user) {
+      if (user.role === 'ADMIN') {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/");
+      }
+    }
+  }, [authLoading, isAuthenticated, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +45,24 @@ const LoginPage: React.FC = () => {
 
     try {
       await login(email, password);
-      router.push("/");
+
+      // Récupérer l'utilisateur après la connexion
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+
+        // Redirection basée sur le rôle
+        if (userData.role === 'ADMIN') {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/");
+        }
+      } else {
+        router.push("/");
+      }
     } catch (err: any) {
       console.error("Login error:", err);
 
