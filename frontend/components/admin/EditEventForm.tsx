@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import {
     Upload,
     Calendar as CalendarIcon,
@@ -15,9 +15,13 @@ import {
     Send,
     AlertCircle,
     CheckCircle2,
-    ArrowLeft
+    ArrowLeft,
+    XCircle,
+    Loader2
 } from "lucide-react";
 import { eventService } from "@/lib/services/eventService";
+import { EventStatus, EventCategory } from "@/lib/types";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 // Custom Select Component
 interface CustomSelectProps {
@@ -78,13 +82,17 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, onChange, p
     );
 };
 
-export default function CreateEventForm() {
+export default function EditEventForm() {
     const router = useRouter();
-    const [isDraftLoading, setIsDraftLoading] = useState(false);
-    const [isPublishLoading, setIsPublishLoading] = useState(false);
+    const { id } = useParams();
+    const [isLoading, setIsLoading] = useState(true);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
     const [success, setSuccess] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [generalError, setGeneralError] = useState("");
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -94,14 +102,50 @@ export default function CreateEventForm() {
         time: "",
         location: "",
         price: "",
-        status: "DRAFT",
-        imagePreview: ""
+        status: "" as EventStatus,
+        imagePreview: "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=2069&auto=format&fit=crop"
     });
+
+    useEffect(() => {
+        if (id) {
+            fetchEvent();
+        }
+    }, [id]);
+
+    const fetchEvent = async () => {
+        try {
+            setIsLoading(true);
+            const event = await eventService.getById(id as string);
+
+            // Format date for input type="date" (YYYY-MM-DD)
+            let formattedDate = "";
+            if (event.date) {
+                const dateObj = new Date(event.date);
+                formattedDate = dateObj.toISOString().split('T')[0];
+            }
+
+            setFormData({
+                title: event.title || "",
+                description: event.description || "",
+                category: event.category || "",
+                date: formattedDate,
+                time: event.time || "",
+                location: event.location || "",
+                price: event.price?.toString() || "0",
+                status: event.status || "DRAFT",
+                imagePreview: event.image || "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=2069&auto=format&fit=crop"
+            });
+        } catch (err: any) {
+            console.error("Error fetching event:", err);
+            setGeneralError("Impossible de charger les détails de l'événement.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        // Clear error when user types
         if (errors[name]) {
             setErrors(prev => {
                 const newErrors = { ...prev };
@@ -111,20 +155,7 @@ export default function CreateEventForm() {
         }
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setFormData(prev => ({
-                ...prev,
-                imagePreview: URL.createObjectURL(file)
-            }));
-        }
-    };
-
-    const handleSave = async (e: React.FormEvent, status: "DRAFT" | "PUBLISHED") => {
-        e.preventDefault();
-
-        // Validation logic
+    const validate = () => {
         const newErrors: Record<string, string> = {};
         if (!formData.title.trim()) newErrors.title = "Le titre est obligatoire";
         if (!formData.description.trim()) newErrors.description = "La description est obligatoire";
@@ -134,60 +165,65 @@ export default function CreateEventForm() {
         if (!formData.location.trim()) newErrors.location = "Le lieu est obligatoire";
         if (!formData.price) newErrors.price = "Le prix est obligatoire";
 
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            // Scroll to the first error
-            const firstErrorKey = Object.keys(newErrors)[0];
-            const element = document.getElementsByName(firstErrorKey)[0] || document.getElementById(firstErrorKey);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleUpdateStatus = async (newStatus: EventStatus) => {
+        if (newStatus === "CANCELED") {
+            setIsConfirmModalOpen(true);
             return;
         }
 
-        setErrors({});
+        executeStatusUpdate(newStatus);
+    };
+
+    const executeStatusUpdate = async (newStatus: EventStatus) => {
+        if (!validate()) return;
+
+        if (newStatus === EventStatus.CANCELED) setIsCancelling(true);
+        else if (newStatus === EventStatus.PUBLISHED && formData.status === EventStatus.DRAFT) setIsPublishing(true);
+        else setIsUpdating(true);
+
         setGeneralError("");
 
-        if (status === "DRAFT") setIsDraftLoading(true);
-        else setIsPublishLoading(true);
-
         try {
-            // Data preparation for backend
-            const eventData = {
+            const updateData = {
                 title: formData.title,
                 description: formData.description,
-                category: formData.category,
+                category: formData.category as any,
                 date: formData.date,
                 time: formData.time,
                 location: formData.location,
                 price: Number(formData.price),
-                status: status as 'DRAFT' | 'PUBLISHED' | 'CANCELED',
-                // image: formData.imagePreview // Image handled later 
+                status: newStatus
             };
 
-            console.log("Sending data to backend:", eventData);
+            await eventService.update(id as string, updateData);
 
-            await eventService.create(eventData);
-
-            setIsDraftLoading(false);
-            setIsPublishLoading(false);
             setSuccess(true);
-
             setTimeout(() => {
                 router.push("/admin/events");
             }, 2000);
         } catch (err: any) {
-            console.error("Error creating event:", err);
-            setIsDraftLoading(false);
-            setIsPublishLoading(false);
-
-            if (err.response?.data?.message) {
-                setGeneralError(err.response.data.message);
-            } else {
-                setGeneralError("Une erreur est survenue lors de la création de l'événement.");
-            }
+            console.error("Error updating event:", err);
+            setGeneralError(err.response?.data?.message || "Une erreur est survenue lors de la mise à jour.");
+        } finally {
+            setIsUpdating(false);
+            setIsPublishing(false);
+            setIsCancelling(false);
+            setIsConfirmModalOpen(false);
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className="h-[60vh] flex flex-col items-center justify-center">
+                <Loader2 className="w-10 h-10 text-[#C5A059] animate-spin mb-4" />
+                <p className="text-gray-500 font-medium italic">Chargement des données de l'événement...</p>
+            </div>
+        );
+    }
 
     if (success) {
         return (
@@ -196,27 +232,34 @@ export default function CreateEventForm() {
                     <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle2 size={40} className="text-green-500" />
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: "serif" }}>Événement Créé !</h2>
-                    <p className="text-gray-500">Votre événement a été enregistré avec succès.</p>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: "serif" }}>Événement Mis à jour !</h2>
+                    <p className="text-gray-500">Les modifications ont été enregistrées avec succès.</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <form>
+        <form className="max-w-7xl mx-auto">
             {/* Header with Title and Buttons */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-[#1A1A1A] mb-1" style={{ fontFamily: "serif" }}>
-                        Nouveau Événement
+                        Modifier l'Événement
                     </h1>
                     <p className="text-gray-500 text-sm font-light">
-                        Remplissez les détails ci-dessous pour publier un événement.
+                        Statut actuel:
+                        <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase ${formData.status === "PUBLISHED" ? "bg-green-50 text-green-600" :
+                            formData.status === "DRAFT" ? "bg-blue-50 text-blue-600" :
+                                "bg-red-50 text-red-600"
+                            }`}>
+                            {formData.status}
+                        </span>
                     </p>
                 </div>
 
                 <div className="flex items-center gap-3">
+                    {/* Botton 1: Retour */}
                     <button
                         type="button"
                         onClick={() => router.push("/admin/events")}
@@ -225,29 +268,58 @@ export default function CreateEventForm() {
                         <ArrowLeft size={14} /> Retour
                     </button>
 
-                    <button
-                        type="button"
-                        onClick={(e) => handleSave(e, "DRAFT")}
-                        disabled={isDraftLoading || isPublishLoading}
-                        className="flex items-center gap-2 bg-black/55 rounded text-white px-6 py-3 text-[11px] font-semibold uppercase tracking-widest hover:bg-black/60 hover:cursor-pointer transition-all hover:shadow-xl shadow-black/10 disabled:opacity-50"
-                    >
-                        {isDraftLoading ? (
-                            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        ) : (
-                            <><FileText size={14} /> Enregistrer en Brouillon</>
-                        )}
-                    </button>
+                    {/* Botton 2: Annuler événement */}
+                    {formData.status !== "CANCELED" && (
+                        <button
+                            type="button"
+                            onClick={() => handleUpdateStatus("CANCELED")}
+                            disabled={isUpdating || isCancelling}
+                            className="flex items-center gap-2 px-5 py-2.5 text-[11px] font-bold rounded text-red-500 bg-white border border-red-100 uppercase tracking-widest hover:bg-red-50 transition-all disabled:opacity-50"
+                        >
+                            {isCancelling ? (
+                                <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                                <XCircle size={14} />
+                            )}
+                            Annuler l'événement
+                        </button>
+                    )}
 
+                    {/* Button 3: Save as Draft (Only if current status is DRAFT) */}
+                    {formData.status === EventStatus.DRAFT && (
+                        <button
+                            type="button"
+                            onClick={() => handleUpdateStatus(EventStatus.DRAFT)}
+                            disabled={isUpdating || isPublishing || isCancelling}
+                            className="flex items-center gap-2 bg-black/55 rounded text-white px-6 py-2.5 text-[11px] font-semibold uppercase tracking-widest hover:bg-black/60 transition-all hover:shadow-xl shadow-black/10 disabled:opacity-50"
+                        >
+                            {isUpdating ? (
+                                <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                                <><Save size={14} /> Enregistrer</>
+                            )}
+                        </button>
+                    )}
+
+                    {/* Button 4: Publier / Enregistrer */}
                     <button
                         type="button"
-                        onClick={(e) => handleSave(e, "PUBLISHED")}
-                        disabled={isDraftLoading || isPublishLoading}
-                        className="flex items-center gap-2 bg-[#C5A059] rounded text-white px-6 py-3 text-[11px] font-semibold uppercase tracking-widest hover:bg-[#b08d4a] hover:cursor-pointer transition-all hover:shadow-xl shadow-[#C5A059]/20 disabled:opacity-50"
+                        onClick={() => handleUpdateStatus(formData.status === EventStatus.DRAFT ? EventStatus.PUBLISHED : formData.status)}
+                        disabled={isUpdating || isPublishing || isCancelling}
+                        className="flex items-center gap-2 bg-[#C5A059] rounded text-white px-6 py-2.5 text-[11px] font-semibold uppercase tracking-widest hover:bg-[#b08d4a] transition-all hover:shadow-xl shadow-[#C5A059]/20 disabled:opacity-50"
                     >
-                        {isPublishLoading ? (
-                            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        {formData.status === EventStatus.DRAFT ? (
+                            isPublishing ? (
+                                <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                                <><Send size={14} /> Publier l'événement</>
+                            )
                         ) : (
-                            <><Send size={14} /> Publier l'événement</>
+                            isUpdating ? (
+                                <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                                <><Save size={14} /> Enregistrer</>
+                            )
                         )}
                     </button>
                 </div>
@@ -273,7 +345,6 @@ export default function CreateEventForm() {
                                 type="text"
                                 name="title"
                                 required
-                                placeholder="Ex: Masterclass Leadership 2026"
                                 className={`w-full px-4 py-2.5 text-sm text-gray-700 bg-white border ${errors.title ? 'border-red-500 bg-red-50/10' : 'border-gray-200'} rounded focus:outline-none focus:border-[#C5A059] transition-colors`}
                                 value={formData.title}
                                 onChange={handleInputChange}
@@ -286,7 +357,6 @@ export default function CreateEventForm() {
                                 name="description"
                                 required
                                 rows={5}
-                                placeholder="Décrivez votre événement en détail..."
                                 className={`w-full px-4 py-2.5 text-sm text-gray-700 bg-white border ${errors.description ? 'border-red-500 bg-red-50/10' : 'border-gray-200'} rounded focus:outline-none focus:border-[#C5A059] transition-colors resize-none`}
                                 value={formData.description}
                                 onChange={handleInputChange}
@@ -337,7 +407,6 @@ export default function CreateEventForm() {
                                     type="text"
                                     name="location"
                                     required
-                                    placeholder="Ex: Hotel Sofitel, Casablanca"
                                     className={`w-full pl-10 pr-4 py-2.5 text-sm text-gray-700 bg-white border ${errors.location ? 'border-red-500 bg-red-50/10' : 'border-gray-200'} rounded focus:outline-none focus:border-[#C5A059] transition-colors`}
                                     value={formData.location}
                                     onChange={handleInputChange}
@@ -358,16 +427,7 @@ export default function CreateEventForm() {
                             label="Catégorie"
                             options={["Formation", "Workshop", "Conférence", "Networking"]}
                             value={formData.category}
-                            onChange={(val) => {
-                                setFormData(prev => ({ ...prev, category: val }));
-                                if (errors.category) {
-                                    setErrors(prev => {
-                                        const newErrors = { ...prev };
-                                        delete newErrors.category;
-                                        return newErrors;
-                                    });
-                                }
-                            }}
+                            onChange={(val) => setFormData(prev => ({ ...prev, category: val }))}
                             placeholder="Sélectionner une catégorie"
                             error={errors.category}
                         />
@@ -380,7 +440,6 @@ export default function CreateEventForm() {
                                     type="number"
                                     name="price"
                                     required
-                                    placeholder="0.00"
                                     className={`w-full pl-10 pr-4 py-2.5 text-sm text-gray-700 bg-white border ${errors.price ? 'border-red-500 bg-red-50/10' : 'border-gray-200'} rounded focus:outline-none focus:border-[#C5A059] transition-colors`}
                                     value={formData.price}
                                     onChange={handleInputChange}
@@ -390,45 +449,19 @@ export default function CreateEventForm() {
                         </div>
                     </div>
                 </div>
-
-                {/* Image Section */}
-                <div className="bg-white p-8 border border-gray-200">
-                    <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-                        <Upload size={14} className="text-[#C5A059]" /> Image de couverture
-                    </h3>
-                    <div className="w-full">
-                        <div className="relative group">
-                            {formData.imagePreview ? (
-                                <div className="relative aspect-video md:aspect-[21/7] rounded-xl overflow-hidden border border-gray-100 shadow-inner">
-                                    <img src={formData.imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center backdrop-blur-sm">
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData(prev => ({ ...prev, imagePreview: "" }))}
-                                            className="bg-white text-red-500 p-3 rounded-full shadow-2xl transform scale-90 group-hover:scale-100 transition-all hover:bg-red-50 mb-3"
-                                        >
-                                            <Trash2 size={24} />
-                                        </button>
-                                        <p className="text-white text-[11px] font-bold uppercase tracking-widest">Supprimer l'image</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <label className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-gray-200 rounded-md cursor-pointer hover:border-[#C5A059] hover:bg-gray-50/50 transition-all group/upload bg-gray-50/30">
-                                    <div className="bg-white p-5 rounded-full shadow-sm mb-5 group-hover/upload:shadow-md transform group-hover/upload:-translate-y-1 transition-all duration-300">
-                                        <Upload size={28} className="text-gray-400 group-hover/upload:text-[#C5A059] transition-colors" />
-                                    </div>
-                                    <p className="text-sm font-bold text-gray-700 uppercase tracking-widest mb-2">Cliquer pour uploader l'image</p>
-                                    <p className="text-[11px] text-gray-400 tracking-wide mb-6">Format recommandé 16:9 • JPG, PNG ou WebP (Max 5Mo)</p>
-                                    <div className="px-6 py-2 bg-white border border-gray-200 rounded-full text-[10px] font-bold text-gray-400 uppercase tracking-widest group-hover/upload:border-[#C5A059] group-hover/upload:text-[#C5A059] transition-all">
-                                        Parcourir les fichiers
-                                    </div>
-                                    <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-                                </label>
-                            )}
-                        </div>
-                    </div>
-                </div>
             </div>
+
+            <ConfirmModal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                onConfirm={() => executeStatusUpdate(EventStatus.CANCELED)}
+                title="Annuler l'événement"
+                message={`Êtes-vous sûr de vouloir annuler l'événement "${formData.title}" ? Cette action est irréversible.`}
+                confirmText="Oui, annuler"
+                cancelText="Non, garder"
+                variant="danger"
+                isLoading={isCancelling}
+            />
         </form>
     );
 }

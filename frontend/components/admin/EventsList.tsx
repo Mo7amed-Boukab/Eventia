@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { eventService } from "@/lib/services/eventService";
 import { Event } from "@/lib/types";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 // Custom Select Component
 interface CustomSelectProps {
@@ -91,6 +92,14 @@ const EventsList: React.FC = () => {
     const [category, setCategory] = useState("");
     const [status, setStatus] = useState("");
 
+    // Confirmation Modal State
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string; title: string }>({
+        isOpen: false,
+        id: "",
+        title: ""
+    });
+    const [isDeleting, setIsDeleting] = useState(false);
+
     const categories = ["Formation", "Workshop", "Conférence", "Networking"];
     const statuses = ["DRAFT", "PUBLISHED", "CANCELED"];
 
@@ -115,14 +124,20 @@ const EventsList: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: string, title: string) => {
-        if (window.confirm(`Voulez-vous supprimer l'événement "${title}" ?`)) {
-            try {
-                await eventService.delete(id);
-                setEvents(prev => prev.filter(e => e._id !== id));
-            } catch (err) {
-                console.error("Error deleting event:", err);
-            }
+    const handleDeleteClick = (id: string, title: string) => {
+        setDeleteModal({ isOpen: true, id, title });
+    };
+
+    const executeDelete = async () => {
+        try {
+            setIsDeleting(true);
+            await eventService.delete(deleteModal.id);
+            setEvents(prev => prev.filter(e => e._id !== deleteModal.id));
+            setDeleteModal({ isOpen: false, id: "", title: "" });
+        } catch (err) {
+            console.error("Error deleting event:", err);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -249,8 +264,8 @@ const EventsList: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2.5 py-1 text-[10px] font-bold uppercase ${event.status === "PUBLISHED" ? "text-green-600 bg-green-50" :
-                                                event.status === "DRAFT" ? "text-blue-600 bg-blue-50" :
-                                                    "text-red-600 bg-red-50"
+                                            event.status === "DRAFT" ? "text-blue-600 bg-blue-50" :
+                                                "text-red-600 bg-red-50"
                                             } rounded`}>
                                             {event.status}
                                         </span>
@@ -264,7 +279,7 @@ const EventsList: React.FC = () => {
                                                 <Edit size={16} />
                                             </Link>
                                             <button
-                                                onClick={() => handleDelete(event._id, event.title)}
+                                                onClick={() => handleDeleteClick(event._id, event.title)}
                                                 className="p-1.5 text-gray-400 hover:text-red-500 transition-colors bg-white border border-gray-100 rounded"
                                             >
                                                 <Trash2 size={16} />
@@ -285,6 +300,18 @@ const EventsList: React.FC = () => {
                     <button className="px-4 py-2 border border-gray-200 rounded hover:cursor-pointer text-xs font-bold bg-white">Suivant</button>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+                onConfirm={executeDelete}
+                title="Supprimer l'événement"
+                message={`Êtes-vous sûr de vouloir supprimer définitivement l'événement "${deleteModal.title}" ? Cette action est irréversible.`}
+                confirmText="Oui, supprimer"
+                cancelText="Annuler"
+                variant="danger"
+                isLoading={isDeleting}
+            />
         </>
     );
 };
