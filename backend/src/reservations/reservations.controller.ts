@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Patch, Param } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -27,5 +27,26 @@ export class ReservationsController {
     @Get('me')
     findMyReservations(@Request() req) {
         return this.reservationsService.findByUser(req.user.userId);
+    }
+
+    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Patch(':id/confirm')
+    confirm(@Param('id') id: string) {
+        return this.reservationsService.confirm(id);
+    }
+
+    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Patch(':id/reject')
+    reject(@Param('id') id: string) {
+        return this.reservationsService.reject(id);
+    }
+
+    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Patch(':id/cancel')
+    cancel(@Param('id') id: string) {
+        return this.reservationsService.cancel(id);
     }
 }

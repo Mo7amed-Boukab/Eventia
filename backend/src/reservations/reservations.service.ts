@@ -61,4 +61,54 @@ export class ReservationsService {
             .sort({ createdAt: -1 })
             .exec();
     }
+
+    async confirm(id: string): Promise<Reservation> {
+        const reservation = await this.reservationModel.findById(id);
+        if (!reservation) {
+            throw new NotFoundException('Réservation non trouvée');
+        }
+
+        if (reservation.status !== ReservationStatus.PENDING) {
+            throw new BadRequestException('Seules les réservations en attente peuvent être confirmées');
+        }
+
+        // Increment participants
+        await this.eventModel.findByIdAndUpdate(reservation.eventId, { $inc: { participants: 1 } });
+
+        reservation.status = ReservationStatus.CONFIRMED;
+        return reservation.save();
+    }
+
+    async reject(id: string): Promise<Reservation> {
+        const reservation = await this.reservationModel.findById(id);
+        if (!reservation) {
+            throw new NotFoundException('Réservation non trouvée');
+        }
+
+        if (reservation.status !== ReservationStatus.PENDING) {
+            throw new BadRequestException('Seules les réservations en attente peuvent être rejetées');
+        }
+
+        reservation.status = ReservationStatus.REJECTED;
+        return reservation.save();
+    }
+
+    async cancel(id: string): Promise<Reservation> {
+        const reservation = await this.reservationModel.findById(id);
+        if (!reservation) {
+            throw new NotFoundException('Réservation non trouvée');
+        }
+
+        if (reservation.status === ReservationStatus.CANCELED || reservation.status === ReservationStatus.REJECTED) {
+            throw new BadRequestException('Cette réservation est déjà annulée ou rejetée');
+        }
+
+        // If it was confirmed, decrement participants
+        if (reservation.status === ReservationStatus.CONFIRMED) {
+            await this.eventModel.findByIdAndUpdate(reservation.eventId, { $inc: { participants: -1 } });
+        }
+
+        reservation.status = ReservationStatus.CANCELED;
+        return reservation.save();
+    }
 }

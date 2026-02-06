@@ -9,6 +9,7 @@ export enum ReservationStatus {
     PENDING = 'PENDING',
     CONFIRMED = 'CONFIRMED',
     CANCELED = 'CANCELED',
+    REJECTED = 'REJECTED',
 }
 
 @Schema({ timestamps: true })
