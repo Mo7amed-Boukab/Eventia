@@ -1,18 +1,20 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from '../users/users.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User, UserDocument } from '../users/schemas/user.schema';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   // Générer les tokens (access + refresh)
   async generateTokens(userId: string, email: string, role: string) {
@@ -33,40 +35,63 @@ export class AuthService {
   }
 
   // Hash le refresh token avant de le sauvegarder
-  async hashToken(token: string): Promise<string> {
-    return bcrypt.hash(token, 10);
+  async hashData(data: string): Promise<string> {
+    return bcrypt.hash(data, 10);
+  }
+
+  async updateRefreshToken(userId: string, refreshToken: string | null) {
+    await this.userModel.findByIdAndUpdate(userId, { refreshToken });
   }
 
   // ----------------------------------------------------------------------
   // Enregistrer un nouvel utilisateur
   async register(registerDto: RegisterDto) {
-    const user = await this.usersService.create(registerDto);
-    const userObj = user.toObject();
-    const userId = userObj._id.toString();
+    // Vérifier si l'utilisateur existe déjà
+    const existingUser = await this.userModel.findOne({ email: registerDto.email });
+    if (existingUser) {
+      throw new ConflictException('Cet email est déjà utilisé');
+    }
 
-    // Générer les tokens
-    const tokens = await this.generateTokens(userId, user.email, user.role);
+    // Hasher le mot de passe
+    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
-    // Hasher et sauvegarder le refresh token
-    const hashedRefreshToken = await this.hashToken(tokens.refreshToken);
-    await this.usersService.updateRefreshToken(userId, hashedRefreshToken);
+    // Créer l'utilisateur
+    const newUser = new this.userModel({
+      ...registerDto,
+      password: hashedPassword,
+    });
 
-    return {
-      access_token: tokens.accessToken,
-      refresh_token: tokens.refreshToken,
-      user: {
-        id: userId,
-        email: user.email,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        role: user.role,
-      },
-    };
+    try {
+      const savedUser = await newUser.save();
+      const userId = savedUser._id.toString();
+
+      // Générer les tokens
+      const tokens = await this.generateTokens(userId, savedUser.email, savedUser.role);
+
+      // Hasher et sauvegarder le refresh token
+      const hashedRefreshToken = await this.hashData(tokens.refreshToken);
+      await this.updateRefreshToken(userId, hashedRefreshToken);
+
+      return {
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
+        user: {
+          id: userId,
+          email: savedUser.email,
+          first_name: savedUser.first_name,
+          last_name: savedUser.last_name,
+          role: savedUser.role,
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException("Erreur lors de l'enregistrement de l'utilisateur");
+    }
   }
+
   // ----------------------------------------------------------------------
   // Valider un utilisateur (email + password)
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email);
+    const user = await this.userModel.findOne({ email });
 
     if (!user) {
       return null;
@@ -85,9 +110,15 @@ export class AuthService {
   // ----------------------------------------------------------------------
   // Connexion
   async login(loginDto: LoginDto) {
-    const user = await this.validateUser(loginDto.email, loginDto.password);
+    const user = await this.userModel.findOne({ email: loginDto.email });
 
     if (!user) {
+      throw new UnauthorizedException('Email ou mot de passe incorrect');
+    }
+
+    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+
+    if (!isPasswordValid) {
       throw new UnauthorizedException('Email ou mot de passe incorrect');
     }
 
@@ -97,8 +128,8 @@ export class AuthService {
     const tokens = await this.generateTokens(userId, user.email, user.role);
 
     // Hasher et sauvegarder le refresh token
-    const hashedRefreshToken = await this.hashToken(tokens.refreshToken);
-    await this.usersService.updateRefreshToken(userId, hashedRefreshToken);
+    const hashedRefreshToken = await this.hashData(tokens.refreshToken);
+    await this.updateRefreshToken(userId, hashedRefreshToken);
 
     return {
       access_token: tokens.accessToken,
@@ -116,7 +147,7 @@ export class AuthService {
   // ----------------------------------------------------------------------
   // Rafraîchir l'access token avec le refresh token
   async refreshTokens(userId: string, refreshToken: string) {
-    const user = await this.usersService.findOneWithRefreshToken(userId);
+    const user = await this.userModel.findById(userId);
 
     if (!user || !user.refreshToken) {
       throw new UnauthorizedException('Accès refusé');
@@ -136,19 +167,19 @@ export class AuthService {
     const tokens = await this.generateTokens(userId, user.email, user.role);
 
     // Mettre à jour le refresh token
-    const hashedRefreshToken = await this.hashToken(tokens.refreshToken);
-    await this.usersService.updateRefreshToken(userId, hashedRefreshToken);
+    const hashedRefreshToken = await this.hashData(tokens.refreshToken);
+    await this.updateRefreshToken(userId, hashedRefreshToken);
 
     return {
       access_token: tokens.accessToken,
       refresh_token: tokens.refreshToken,
     };
   }
-  
+
   // ----------------------------------------------------------------------
   // Déconnexion (supprime le refresh token)
   async logout(userId: string) {
-    await this.usersService.updateRefreshToken(userId, null);
+    await this.updateRefreshToken(userId, null);
     return { message: 'Déconnexion réussie' };
   }
 }
