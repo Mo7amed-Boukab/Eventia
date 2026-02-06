@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const LoginForm: React.FC = () => {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { login, user, isAuthenticated, isLoading: authLoading } = useAuth();
 
     const [email, setEmail] = useState("");
@@ -19,13 +20,16 @@ const LoginForm: React.FC = () => {
     // Redirect if already logged in
     useEffect(() => {
         if (!authLoading && isAuthenticated && user) {
-            if (user.role === 'ADMIN') {
+            const redirectUrl = searchParams.get('redirect');
+            if (redirectUrl) {
+                router.push(redirectUrl);
+            } else if (user.role === 'ADMIN') {
                 router.push("/admin/dashboard");
             } else {
                 router.push("/");
             }
         }
-    }, [authLoading, isAuthenticated, user, router]);
+    }, [authLoading, isAuthenticated, user, router, searchParams]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;

@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 import { eventService } from "@/lib/services/eventService";
 import { Event, EventStatus } from "@/lib/types";
+import { useAuth } from "@/context/AuthContext";
+import { reservationService } from "@/lib/services/reservationService";
 
 export default function PublicEventDetails() {
     const router = useRouter();
@@ -34,6 +36,12 @@ export default function PublicEventDetails() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
     const [scrolled, setScrolled] = useState(false);
+
+    // Auth and Reservation State
+    const { isAuthenticated, user } = useAuth();
+    const [bookingLoading, setBookingLoading] = useState(false);
+    const [bookingSuccess, setBookingSuccess] = useState(false);
+    const [bookingError, setBookingError] = useState("");
 
     const STATIC_IMAGE = "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=2069&auto=format&fit=crop";
 
@@ -55,6 +63,30 @@ export default function PublicEventDetails() {
             setError("Impossible de charger les détails de l'événement.");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleBooking = async () => {
+        if (!isAuthenticated) {
+            // Encode the current URL to redirect back after login
+            const returnUrl = encodeURIComponent(`/events/${id}`);
+            router.push(`/login?redirect=${returnUrl}`);
+            return;
+        }
+
+        try {
+            setBookingLoading(true);
+            setBookingError("");
+            setBookingSuccess(false);
+
+            await reservationService.create({ eventId: id as string });
+            setBookingSuccess(true);
+        } catch (err: any) {
+            console.error("Booking failed:", err);
+            const errorMessage = err.response?.data?.message || "La réservation a échoué. Veuillez réessayer.";
+            setBookingError(errorMessage);
+        } finally {
+            setBookingLoading(false);
         }
     };
 
@@ -305,9 +337,33 @@ export default function PublicEventDetails() {
                                     </div>
                                 </div>
 
-                                <button className="w-full bg-[#1A1A1A] text-white py-5 rounded-sm font-bold tracking-[0.4em] uppercase text-xs hover:bg-[#C5A059] transition-all transform hover:scale-[1.02] shadow-2xl active:scale-95 group">
-                                    Réserver mon ticket <ChevronRight size={16} className="inline-block ml-2 group-hover:translate-x-2 transition-transform" />
-                                </button>
+                                {bookingSuccess ? (
+                                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative text-center" role="alert">
+                                        <strong className="font-bold block text-sm mb-1">Réservation Reçue !</strong>
+                                        <span className="block sm:inline text-xs">Votre demande est en attente de confirmation.</span>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {bookingError && (
+                                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4 text-center text-xs">
+                                                {bookingError}
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={handleBooking}
+                                            disabled={bookingLoading}
+                                            className="w-full bg-[#1A1A1A] text-white py-5 rounded-sm font-bold tracking-[0.4em] uppercase text-xs hover:bg-[#C5A059] transition-all transform hover:scale-[1.02] shadow-2xl active:scale-95 group disabled:opacity-70 disabled:cursor-not-allowed"
+                                        >
+                                            {bookingLoading ? (
+                                                <span className="flex items-center justify-center gap-2">
+                                                    <Loader2 className="animate-spin" size={16} /> Traitement...
+                                                </span>
+                                            ) : (
+                                                <>Réserver mon ticket <ChevronRight size={16} className="inline-block ml-2 group-hover:translate-x-2 transition-transform" /></>
+                                            )}
+                                        </button>
+                                    </>
+                                )}
 
                                 <p className="mt-8 text-center text-[9px] text-gray-400 font-medium uppercase tracking-[0.2em] italic">Garanti 100% sécurisé par Eventia</p>
                             </div>
@@ -342,9 +398,19 @@ export default function PublicEventDetails() {
                         <p className="text-[8px] font-bold text-[#C5A059] uppercase tracking-[0.2em] mb-0.5">Tarif d'accès</p>
                         <p className="text-xl font-bold text-white tracking-tight">{event.price === 0 ? "Offert" : `${event.price} MAD`}</p>
                     </div>
-                    <button className="bg-[#C5A059] text-white px-8 py-4 rounded-sm font-bold tracking-[0.2em] uppercase text-[10px] shadow-xl active:scale-95 transition-all">
-                        Réserver
-                    </button>
+                    {bookingSuccess ? (
+                        <div className="bg-green-100 text-green-800 px-4 py-2 rounded text-xs font-bold">
+                            Réservé
+                        </div>
+                    ) : (
+                        <button
+                            onClick={handleBooking}
+                            disabled={bookingLoading}
+                            className="bg-[#C5A059] text-white px-8 py-4 rounded-sm font-bold tracking-[0.2em] uppercase text-[10px] shadow-xl active:scale-95 transition-all disabled:opacity-70"
+                        >
+                            {bookingLoading ? <Loader2 className="animate-spin" size={16} /> : "Réserver"}
+                        </button>
+                    )}
                 </div>
             </div>
 

@@ -1,5 +1,6 @@
+import React, { Suspense } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import LoginForm from "@/components/auth/LoginForm";
 
 export const metadata = {
@@ -31,7 +32,7 @@ const LoginPage = () => {
 
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-[1px] bg-[#C5A059]"></div>
+              <div className="w-12 h-px bg-[#C5A059]"></div>
               <span className="text-xs font-bold tracking-[0.3em] uppercase text-[#C5A059]">
                 Service Immédiat
               </span>
@@ -67,7 +68,14 @@ const LoginPage = () => {
             </Link>
           </div>
 
-          <LoginForm />
+          <Suspense fallback={
+            <div className="flex flex-col items-center justify-center py-10">
+              <Loader2 className="w-8 h-8 text-[#C5A059] animate-spin mb-4" />
+              <p className="text-gray-400 text-sm italic">Chargement...</p>
+            </div>
+          }>
+            <LoginForm />
+          </Suspense>
         </div>
       </div>
     </div>
