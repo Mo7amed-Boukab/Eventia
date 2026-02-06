@@ -15,13 +15,17 @@ import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../users/schemas/user.schema';
 
 @Controller('events')
 export class EventsController {
     constructor(private readonly eventsService: EventsService) { }
 
     @Post()
-    @UseGuards(JwtAuthGuard)
+    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @HttpCode(HttpStatus.CREATED)
     async create(@Body() createEventDto: CreateEventDto) {
         const event = await this.eventsService.create(createEventDto);
@@ -53,7 +57,8 @@ export class EventsController {
     }
 
     @Patch(':id')
-    @UseGuards(JwtAuthGuard)
+    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard)
     async update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
         const event = await this.eventsService.update(id, updateEventDto);
         return {
@@ -63,7 +68,8 @@ export class EventsController {
     }
 
     @Delete(':id')
-    @UseGuards(JwtAuthGuard)
+    @Roles(UserRole.ADMIN)
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @HttpCode(HttpStatus.NO_CONTENT)
     async remove(@Param('id') id: string) {
         await this.eventsService.remove(id);
