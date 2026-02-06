@@ -28,6 +28,7 @@ import { eventService } from "@/lib/services/eventService";
 import { Event, EventStatus } from "@/lib/types";
 import { useAuth } from "@/context/AuthContext";
 import { reservationService } from "@/lib/services/reservationService";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 export default function PublicEventDetails() {
     const router = useRouter();
@@ -42,21 +43,39 @@ export default function PublicEventDetails() {
     const [bookingLoading, setBookingLoading] = useState(false);
     const [bookingSuccess, setBookingSuccess] = useState(false);
     const [bookingError, setBookingError] = useState("");
+    const [userReservation, setUserReservation] = useState<any>(null);
+    const [showCancelModal, setShowCancelModal] = useState(false);
 
     const STATIC_IMAGE = "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=2069&auto=format&fit=crop";
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 200);
         window.addEventListener("scroll", handleScroll);
-        if (id) fetchEvent();
+        if (id) {
+            fetchEvent();
+            if (isAuthenticated) {
+                checkReservationStatus();
+            }
+        }
         return () => window.removeEventListener("scroll", handleScroll);
-    }, [id]);
+    }, [id, isAuthenticated]);
+
+    const checkReservationStatus = async () => {
+        try {
+            const data = await reservationService.getStatus(id as string);
+            if (data.isReserved) {
+                setUserReservation(data.reservation);
+                setBookingSuccess(true);
+            }
+        } catch (err) {
+            console.error("Error checking reservation status:", err);
+        }
+    };
 
     const fetchEvent = async () => {
         try {
             setIsLoading(true);
             const data = await eventService.getById(id as string);
-            // On public site, we only show published events or at least warn
             setEvent(data);
         } catch (err: any) {
             console.error("Error fetching event:", err);
@@ -79,12 +98,39 @@ export default function PublicEventDetails() {
             setBookingError("");
             setBookingSuccess(false);
 
-            await reservationService.create({ eventId: id as string });
+            const result = await reservationService.create({ eventId: id as string });
+            setUserReservation(result);
             setBookingSuccess(true);
+            fetchEvent(); // Refresh participant count
         } catch (err: any) {
             console.error("Booking failed:", err);
             const errorMessage = err.response?.data?.message || "La réservation a échoué. Veuillez réessayer.";
             setBookingError(errorMessage);
+        } finally {
+            setBookingLoading(false);
+        }
+    };
+
+    const handleCancelBooking = async () => {
+        if (!userReservation?._id) return;
+        setShowCancelModal(true);
+    };
+
+    const confirmCancelBooking = async () => {
+        try {
+            setBookingLoading(true);
+            setBookingError("");
+
+            await reservationService.cancel(userReservation._id);
+            setUserReservation(null);
+            setBookingSuccess(false);
+            fetchEvent(); // Refresh participant count
+            setShowCancelModal(false);
+        } catch (err: any) {
+            console.error("Cancellation failed:", err);
+            const errorMessage = err.response?.data?.message || "L'annulation a échoué. Veuillez réessayer.";
+            setBookingError(errorMessage);
+            setShowCancelModal(false);
         } finally {
             setBookingLoading(false);
         }
@@ -338,9 +384,26 @@ export default function PublicEventDetails() {
                                 </div>
 
                                 {bookingSuccess ? (
-                                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative text-center" role="alert">
-                                        <strong className="font-bold block text-sm mb-1">Réservation Reçue !</strong>
-                                        <span className="block sm:inline text-xs">Votre demande est en attente de confirmation.</span>
+                                    <div className="space-y-4">
+                                        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative text-center" role="alert">
+                                            <strong className="font-bold block text-sm mb-1">C'est réservé !</strong>
+                                            <span className="block sm:inline text-xs">
+                                                {userReservation?.status === 'CONFIRMED'
+                                                    ? "Votre place est confirmée. À bientôt !"
+                                                    : "Votre demande est en attente de confirmation."}
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={handleCancelBooking}
+                                            disabled={bookingLoading}
+                                            className="w-full bg-red-50 text-red-600 py-4 rounded-sm font-bold tracking-[0.2em] uppercase text-[10px] hover:bg-red-100 transition-all transform active:scale-95 disabled:opacity-70 border border-red-100"
+                                        >
+                                            {bookingLoading ? (
+                                                <Loader2 className="animate-spin mx-auto" size={16} />
+                                            ) : (
+                                                "Annuler ma réservation"
+                                            )}
+                                        </button>
                                     </div>
                                 ) : (
                                     <>
@@ -399,9 +462,13 @@ export default function PublicEventDetails() {
                         <p className="text-xl font-bold text-white tracking-tight">{event.price === 0 ? "Offert" : `${event.price} MAD`}</p>
                     </div>
                     {bookingSuccess ? (
-                        <div className="bg-green-100 text-green-800 px-4 py-2 rounded text-xs font-bold">
-                            Réservé
-                        </div>
+                        <button
+                            onClick={handleCancelBooking}
+                            disabled={bookingLoading}
+                            className="bg-red-500 text-white px-6 py-4 rounded-sm font-bold tracking-[0.2em] uppercase text-[10px] shadow-xl active:scale-95 transition-all disabled:opacity-70"
+                        >
+                            {bookingLoading ? <Loader2 className="animate-spin" size={16} /> : "Annuler"}
+                        </button>
                     ) : (
                         <button
                             onClick={handleBooking}
@@ -424,6 +491,18 @@ export default function PublicEventDetails() {
                     <p className="text-[10px] text-gray-400 font-medium uppercase tracking-[0.4em]">Excellence • Passion • Partage</p>
                 </div>
             </footer>
+
+            <ConfirmModal
+                isOpen={showCancelModal}
+                onClose={() => setShowCancelModal(false)}
+                onConfirm={confirmCancelBooking}
+                title="Annuler la réservation"
+                message="Êtes-vous sûr de vouloir annuler votre réservation ? Cette action libérera votre place pour d'autres participants."
+                confirmText="Oui, annuler"
+                cancelText="Garder ma place"
+                variant="premium"
+                isLoading={bookingLoading}
+            />
         </div>
     );
 }

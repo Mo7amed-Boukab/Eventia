@@ -93,6 +93,33 @@ export class ReservationsService {
         return reservation.save();
     }
 
+    async findOneByUserAndEvent(userId: string, eventId: string): Promise<Reservation | null> {
+        return this.reservationModel.findOne({
+            userId: userId as any,
+            eventId: eventId as any,
+            status: { $ne: ReservationStatus.CANCELED }
+        }).exec();
+    }
+
+    async cancelByUser(id: string, userId: string): Promise<Reservation> {
+        const reservation = await this.reservationModel.findOne({ _id: id, userId: userId as any });
+        if (!reservation) {
+            throw new NotFoundException('Réservation non trouvée ou vous n\'avez pas les droits');
+        }
+
+        if (reservation.status === ReservationStatus.CANCELED || reservation.status === ReservationStatus.REJECTED) {
+            throw new BadRequestException('Cette réservation est déjà annulée ou rejetée');
+        }
+
+        // If it was confirmed, decrement participants
+        if (reservation.status === ReservationStatus.CONFIRMED) {
+            await this.eventModel.findByIdAndUpdate(reservation.eventId, { $inc: { participants: -1 } });
+        }
+
+        reservation.status = ReservationStatus.CANCELED;
+        return reservation.save();
+    }
+
     async cancel(id: string): Promise<Reservation> {
         const reservation = await this.reservationModel.findById(id);
         if (!reservation) {

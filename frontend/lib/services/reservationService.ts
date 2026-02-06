@@ -42,5 +42,10 @@ export const reservationService = {
     cancel: async (id: string) => {
         const response = await apiClient.patch(`/reservations/${id}/cancel`);
         return response.data;
+    },
+
+    getStatus: async (eventId: string) => {
+        const response = await apiClient.get(`/reservations/status/${eventId}`);
+        return response.data;
     }
 };

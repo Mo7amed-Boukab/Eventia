@@ -29,6 +29,13 @@ export class ReservationsController {
         return this.reservationsService.findByUser(req.user.userId);
     }
 
+    @UseGuards(JwtAuthGuard)
+    @Get('status/:eventId')
+    async getStatus(@Request() req, @Param('eventId') eventId: string) {
+        const reservation = await this.reservationsService.findOneByUserAndEvent(req.user.userId, eventId);
+        return { isReserved: !!reservation, reservation };
+    }
+
     @Roles(UserRole.ADMIN)
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Patch(':id/confirm')
@@ -43,10 +50,14 @@ export class ReservationsController {
         return this.reservationsService.reject(id);
     }
 
-    @Roles(UserRole.ADMIN)
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    @UseGuards(JwtAuthGuard)
     @Patch(':id/cancel')
-    cancel(@Param('id') id: string) {
-        return this.reservationsService.cancel(id);
+    async cancel(@Request() req, @Param('id') id: string) {
+        // If admin, they can cancel any reservation
+        if (req.user.role === UserRole.ADMIN) {
+            return this.reservationsService.cancel(id);
+        }
+        // If user, they can only cancel their own
+        return this.reservationsService.cancelByUser(id, req.user.userId);
     }
 }

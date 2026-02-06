@@ -1,122 +1,145 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { X, AlertTriangle } from "lucide-react";
+import { X, AlertTriangle, ShieldCheck, HelpCircle, CheckCircle2 } from "lucide-react";
 
 interface ConfirmModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: string;
-  confirmText?: string;
-  cancelText?: string;
-  variant?: "danger" | "warning" | "success" | "primary";
-  isLoading?: boolean;
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    variant?: "danger" | "warning" | "success" | "primary" | "premium";
+    isLoading?: boolean;
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
-  isOpen,
-  onClose,
-  onConfirm,
-  title,
-  message,
-  confirmText = "Confirmer",
-  cancelText = "Annuler",
-  variant = "danger",
-  isLoading = false,
+    isOpen,
+    onClose,
+    onConfirm,
+    title,
+    message,
+    confirmText = "Confirmer",
+    cancelText = "Annuler",
+    variant = "danger",
+    isLoading = false,
 }) => {
-  // Prevent scrolling when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
+    // Prevent scrolling when modal is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "unset";
+        }
+        return () => {
+            document.body.style.overflow = "unset";
+        };
+    }, [isOpen]);
+
+    if (!isOpen) return null;
+
+    const getVariantStyles = () => {
+        switch (variant) {
+            case "danger":
+                return {
+                    icon: <AlertTriangle size={24} />,
+                    iconBg: "bg-red-50 text-red-600",
+                    button: "bg-red-600 hover:bg-red-700 shadow-red-200",
+                };
+            case "success":
+                return {
+                    icon: <CheckCircle2 size={24} />,
+                    iconBg: "bg-green-50 text-green-600",
+                    button: "bg-green-600 hover:bg-green-700 shadow-green-200",
+                };
+            case "primary":
+            case "premium":
+                return {
+                    icon: <ShieldCheck size={24} />,
+                    iconBg: "bg-[#FDFBF7] text-[#C5A059] border border-[#C5A059]/10",
+                    button: "bg-[#1A1A1A] hover:bg-[#C5A059] shadow-gray-200",
+                };
+            case "warning":
+            default:
+                return {
+                    icon: <HelpCircle size={24} />,
+                    iconBg: "bg-amber-50 text-amber-500",
+                    button: "bg-amber-600 hover:bg-amber-700 shadow-amber-200",
+                };
+        }
     };
-  }, [isOpen]);
 
-  if (!isOpen) return null;
+    const styles = getVariantStyles();
 
-  return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/10 animate-in fade-in duration-200"
-        onClick={onClose}
-      ></div>
-
-      {/* Modal Content */}
-      <div className="relative bg-white w-full max-w-md rounded shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="p-6">
-          <div className="flex items-start gap-4">
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+            {/* Backdrop with sophisticated blur */}
             <div
-              className={`p-3 rounded-full shrink-0 ${
-                variant === "danger"
-                  ? "bg-red-50 text-red-500"
-                  : variant === "success"
-                    ? "bg-green-50 text-green-500"
-                    : variant === "primary"
-                      ? "bg-[#C5A059]/10 text-[#C5A059]"
-                      : "bg-orange-50 text-orange-500"
-              }`}
-            >
-              <AlertTriangle size={24} />
-            </div>
-            <div className="flex-1">
-              <h3
-                className="text-lg font-bold text-gray-900 mb-2"
-                style={{ fontFamily: "serif" }}
-              >
-                {title}
-              </h3>
-              <p className="text-sm text-gray-500 leading-relaxed font-light">
-                {message}
-              </p>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X size={20} />
-            </button>
-          </div>
-        </div>
+                className="absolute inset-0 bg-[#1A1A1A]/10 animate-in fade-in duration-300"
+                onClick={onClose}
+            ></div>
 
-        <div className="bg-gray-50 px-6 py-4 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isLoading}
-            className="px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-widest hover:text-gray-700 transition-colors disabled:opacity-50"
-          >
-            {cancelText}
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={isLoading}
-            className={`px-6 py-2.5 rounded text-white text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2 ${
-              variant === "danger"
-                ? "bg-red-600 hover:bg-red-700"
-                : variant === "success"
-                  ? "bg-green-600 hover:bg-green-700"
-                  : variant === "primary"
-                    ? "bg-[#C5A059] hover:bg-[#b08d45]"
-                    : "bg-orange-500 hover:bg-orange-600"
-            } disabled:opacity-50`}
-          >
-            {isLoading && (
-              <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            )}
-            {confirmText}
-          </button>
+            {/* Modal Content */}
+            <div className="relative bg-white w-full max-w-md rounded-sm shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 ease-out">
+                {/* Decorative top line */}
+                <div className={`h-1 w-full ${variant === "premium" || variant === "primary" ? "bg-[#C5A059]" : variant === "danger" ? "bg-red-500" : "bg-green-500"}`} />
+
+                <div className="p-8">
+                    <div className="flex flex-col items-center text-center">
+                        <div
+                            className={`p-4 rounded-full mb-6 ${styles.iconBg} shadow`}
+                        >
+                            {styles.icon}
+                        </div>
+
+                        <h3
+                            className="text-2xl font-bold text-[#1A1A1A] mb-3 tracking-tight"
+                            style={{ fontFamily: "serif" }}
+                        >
+                            {title}
+                        </h3>
+
+                        <p className="text-gray-500 leading-relaxed font-light text-sm max-w-[280px]">
+                            {message}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="px-8 pb-8 flex flex-col sm:flex-row-reverse items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={onConfirm}
+                        disabled={isLoading}
+                        className={`w-full sm:flex-1 py-4 rounded-sm text-white text-[10px] font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 disabled:opacity-50 ${styles.button}`}
+                    >
+                        {isLoading && (
+                            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        )}
+                        {confirmText}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={isLoading}
+                        className="w-full sm:flex-1 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] hover:text-[#1A1A1A] hover:bg-gray-50 transition-all rounded-sm disabled:opacity-50"
+                    >
+                        {cancelText}
+                    </button>
+                </div>
+
+                {/* Minimal close button */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 p-2 text-gray-300 hover:text-gray-600 transition-colors"
+                >
+                    <X size={18} />
+                </button>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default ConfirmModal;
