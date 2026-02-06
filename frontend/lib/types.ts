@@ -3,7 +3,7 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
-  role: 'ADMIN' | 'PARTICIPANT';
+  role: "ADMIN" | "PARTICIPANT";
 }
 
 export interface AuthResponse {
@@ -30,16 +30,16 @@ export interface RefreshTokenResponse {
 }
 
 export enum EventCategory {
-  FORMATION = 'Formation',
-  WORKSHOP = 'Workshop',
-  CONFERENCE = 'Conférence',
-  NETWORKING = 'Networking',
+  FORMATION = "Formation",
+  WORKSHOP = "Workshop",
+  CONFERENCE = "Conférence",
+  NETWORKING = "Networking",
 }
 
 export enum EventStatus {
-  DRAFT = 'DRAFT',
-  PUBLISHED = 'PUBLISHED',
-  CANCELED = 'CANCELED',
+  DRAFT = "DRAFT",
+  PUBLISHED = "PUBLISHED",
+  CANCELED = "CANCELED",
 }
 
 export interface Event {
@@ -57,4 +57,13 @@ export interface Event {
   maxParticipants?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Testimonial {
+  id: string;
+  name: string;
+  role: string;
+  content: string;
+  avatar: string;
+  rating: number;
 }

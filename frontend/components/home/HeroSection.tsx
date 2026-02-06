@@ -12,13 +12,13 @@ const HeroSection: React.FC = () => {
           alt="Premium Professional Event Venue"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1A1A1A]/90 via-[#1A1A1A]/40 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-[#1A1A1A]/90 via-[#1A1A1A]/40 to-transparent" />
       </div>
 
       <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white pt-20">
         <div className="max-w-3xl">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-[1px] bg-[#C5A059]"></div>
+            <div className="w-12 h-px bg-[#C5A059]"></div>
             <span className="text-xs font-bold tracking-[0.3em] uppercase text-[#C5A059]">
               Excellence Corporative
             </span>
