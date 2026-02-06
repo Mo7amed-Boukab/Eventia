@@ -27,7 +27,7 @@ const Sidebar: React.FC = () => {
     const navItems = [
         { path: "/admin/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
         { path: "/admin/events", label: "Événements", icon: Calendar },
-        { path: "/admin/bookings", label: "Réservations", icon: FileText },
+        { path: "/admin/reservations", label: "Réservations", icon: FileText },
         { path: "/admin/users", label: "Utilisateurs", icon: Users },
     ];
 

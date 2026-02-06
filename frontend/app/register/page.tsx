@@ -31,7 +31,7 @@ const RegisterPage = () => {
 
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-[1px] bg-[#C5A059]"></div>
+              <div className="w-12 h-px bg-[#C5A059]"></div>
               <span className="text-xs font-bold tracking-[0.3em] uppercase text-[#C5A059]">
                 Excellence Corporative
               </span>
