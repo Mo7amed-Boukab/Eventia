@@ -117,7 +117,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         type="button"
                         onClick={onConfirm}
                         disabled={isLoading}
-                        className={`w-full sm:flex-1 py-4 rounded-sm text-white text-[10px] font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 disabled:opacity-50 ${styles.button}`}
+                        className={`w-full sm:flex-1 py-3.5 px-6 rounded-sm text-white text-[10px] font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 disabled:opacity-50 ${styles.button}`}
                     >
                         {isLoading ? (
                             <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -130,7 +130,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         type="button"
                         onClick={onClose}
                         disabled={isLoading}
-                        className="w-full sm:flex-1 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] hover:text-[#1A1A1A] hover:bg-gray-50 transition-all rounded-sm disabled:opacity-50"
+                        className="w-full sm:flex-1 py-3.5 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] hover:text-[#1A1A1A] hover:bg-gray-50 transition-all rounded-sm disabled:opacity-50"
                     >
                         {cancelText}
                     </button>

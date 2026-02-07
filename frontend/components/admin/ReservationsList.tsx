@@ -307,7 +307,7 @@ const ReservationsList: React.FC = () => {
                                                                 )
                                                             }
                                                             disabled={actionLoading === r._id}
-                                                            className="p-1.5 text-green-600 hover:bg-green-50 transition-colors border border-green-200 rounded"
+                                                            className="p-1.5 text-gray-400 hover:text-[#C5A059] transition-colors bg-white border border-gray-100 rounded"
                                                             title="Confirmer"
                                                         >
                                                             <CheckCircle2 size={16} />
@@ -321,7 +321,7 @@ const ReservationsList: React.FC = () => {
                                                                 )
                                                             }
                                                             disabled={actionLoading === r._id}
-                                                            className="p-1.5 text-red-600 hover:bg-red-50 transition-colors border border-red-200 rounded"
+                                                            className="p-1.5 text-gray-400 hover:text-red-500 transition-colors bg-white border border-gray-100 rounded"
                                                             title="Rejeter"
                                                         >
                                                             <XCircle size={16} />
