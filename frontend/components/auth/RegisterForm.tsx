@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
 
 const RegisterForm: React.FC = () => {
     const router = useRouter();
     const { register, user, isAuthenticated, isLoading: authLoading } = useAuth();
+    const { toast } = useToast();
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -18,17 +20,23 @@ const RegisterForm: React.FC = () => {
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [generalError, setGeneralError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [hasShownToast, setHasShownToast] = useState(false);
 
     // Rediriger si déjà connecté
     useEffect(() => {
         if (!authLoading && isAuthenticated && user) {
+            if (!hasShownToast) {
+                toast.success(`Bienvenue parmi nous, ${user.first_name} !`, "Compte créé");
+                setHasShownToast(true);
+            }
+
             if (user.role === 'ADMIN') {
                 router.push("/admin/dashboard");
             } else {
                 router.push("/");
             }
         }
-    }, [authLoading, isAuthenticated, user, router]);
+    }, [authLoading, isAuthenticated, user, router, toast, hasShownToast]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;

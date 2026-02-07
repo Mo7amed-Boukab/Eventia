@@ -16,8 +16,9 @@ import { usePathname } from "next/navigation";
 const Footer: React.FC = () => {
   const pathname = usePathname();
   const isAuthPage = pathname === "/login" || pathname === "/register";
+  const isAdminPage = pathname?.startsWith("/admin");
 
-  if (isAuthPage) return null;
+  if (isAuthPage || isAdminPage) return null;
 
   return (
     <footer className="bg-[#1A1A1A] text-white pt-20 pb-10">

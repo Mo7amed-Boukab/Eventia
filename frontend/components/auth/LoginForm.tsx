@@ -5,11 +5,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
 
 const LoginForm: React.FC = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { login, user, isAuthenticated, isLoading: authLoading } = useAuth();
+    const { toast } = useToast();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -17,9 +19,16 @@ const LoginForm: React.FC = () => {
     const [generalError, setGeneralError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
+    const [hasShownToast, setHasShownToast] = useState(false);
+
     // Redirect if already logged in
     useEffect(() => {
         if (!authLoading && isAuthenticated && user) {
+            if (!hasShownToast) {
+                toast.success(`Heureux de vous revoir, ${user.first_name} !`, "Connexion réussie");
+                setHasShownToast(true);
+            }
+
             const redirectUrl = searchParams.get('redirect');
             if (redirectUrl) {
                 router.push(redirectUrl);
@@ -29,7 +38,7 @@ const LoginForm: React.FC = () => {
                 router.push("/");
             }
         }
-    }, [authLoading, isAuthenticated, user, router, searchParams]);
+    }, [authLoading, isAuthenticated, user, router, searchParams, toast, hasShownToast]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;

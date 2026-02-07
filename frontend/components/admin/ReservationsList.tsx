@@ -19,8 +19,10 @@ import {
 } from "@/lib/services/reservationService";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Link from "next/link";
+import { useToast } from "@/context/ToastContext";
 
 const ReservationsList: React.FC = () => {
+    const { toast } = useToast();
     const [reservations, setReservations] = useState<Reservation[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -80,9 +82,12 @@ const ReservationsList: React.FC = () => {
             // Refresh list
             await fetchReservations();
             setModal({ isOpen: false, type: null, id: "", ticket: "" });
+
+            const actionName = modal.type === 'CONFIRM' ? 'confirmée' : modal.type === 'REJECT' ? 'rejetée' : 'annulée';
+            toast.success(`La réservation ${modal.ticket} a été ${actionName} avec succès.`, "Opération réussie");
         } catch (err) {
             console.error("Action failed", err);
-            alert("L'action a échoué");
+            toast.error("Une erreur est survenue lors de l'exécution de l'action.", "Action échouée");
         } finally {
             setActionLoading(null);
         }

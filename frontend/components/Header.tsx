@@ -37,14 +37,15 @@ const Header: React.FC = () => {
 
   const isHome = pathname === "/";
   const isAuthPage = pathname === "/login" || pathname === "/register";
+  const isAdminPage = pathname?.startsWith("/admin");
 
-  if (isAuthPage) return null;
+  if (isAuthPage || isAdminPage) return null;
 
   return (
     <nav
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled || !isHome
-          ? "bg-white/95 backdrop-blur-sm shadow-sm py-3"
-          : "bg-transparent py-6"
+        ? "bg-white/95 backdrop-blur-sm shadow-sm py-3"
+        : "bg-transparent py-6"
         }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -65,8 +66,8 @@ const Header: React.FC = () => {
                 key={link.name}
                 href={link.path}
                 className={`text-sm font-medium transition-colors ${isScrolled || !isHome
-                    ? "text-gray-600 hover:text-[#C5A059]"
-                    : "text-white/90 hover:text-white"
+                  ? "text-gray-600 hover:text-[#C5A059]"
+                  : "text-white/90 hover:text-white"
                   }`}
               >
                 {link.name}
@@ -83,8 +84,8 @@ const Header: React.FC = () => {
                 <button
                   onClick={handleLogout}
                   className={`flex items-center gap-2 text-sm font-semibold transition-colors ${isScrolled || !isHome
-                      ? "text-gray-600 hover:text-red-600"
-                      : "text-white hover:text-red-400"
+                    ? "text-gray-600 hover:text-red-600"
+                    : "text-white hover:text-red-400"
                     }`}
                 >
                   <LogOut size={16} /> se déconnecter
@@ -95,8 +96,8 @@ const Header: React.FC = () => {
                 <Link
                   href="/login"
                   className={`text-sm font-semibold transition-colors ${isScrolled || !isHome
-                      ? "text-gray-600 hover:text-[#C5A059]"
-                      : "text-white hover:text-[#C5A059]"
+                    ? "text-gray-600 hover:text-[#C5A059]"
+                    : "text-white hover:text-[#C5A059]"
                     }`}
                 >
                   se connecter

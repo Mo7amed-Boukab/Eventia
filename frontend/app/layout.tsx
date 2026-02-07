@@ -6,6 +6,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { AuthProvider } from "@/context/AuthContext";
+import { ToastProvider } from "@/context/ToastContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,9 +36,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          {!isAdmin && <Header />}
-          {children}
-          {!isAdmin && <Footer />}
+          <ToastProvider>
+            <div className="flex flex-col min-h-screen">
+              {!isAdmin && <Header />}
+              <div className="grow">
+                {children}
+              </div>
+              {!isAdmin && <Footer />}
+            </div>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>
