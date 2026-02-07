@@ -35,6 +35,7 @@ const MyReservationsPage = () => {
         ticket: ""
     });
     const [isCancelling, setIsCancelling] = useState(false);
+    const [downloading, setDownloading] = useState<string | null>(null);
 
     useEffect(() => {
         if (!authLoading && !isAuthenticated) {
@@ -77,6 +78,34 @@ const MyReservationsPage = () => {
             toast.error("Une erreur est survenue lors de l'annulation.");
         } finally {
             setIsCancelling(false);
+        }
+    };
+
+    const handleDownloadTicket = async (id: string, ticketNum: string) => {
+        try {
+            setDownloading(id);
+            const blob = await reservationService.downloadTicket(id);
+
+            // Create a URL for the blob
+            const url = window.URL.createObjectURL(new Blob([blob]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Ticket-Eventia-${ticketNum}.pdf`);
+
+            // Append to body, click, and remove
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode?.removeChild(link);
+
+            // Clean up the URL
+            window.URL.revokeObjectURL(url);
+
+            toast.success("Votre billet est prêt ! Ouverture du téléchargement.");
+        } catch (err) {
+            console.error("Download failed", err);
+            toast.error("Impossible de générer votre billet pour le moment.");
+        } finally {
+            setDownloading(null);
         }
     };
 
@@ -187,8 +216,8 @@ const MyReservationsPage = () => {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id as any)}
                                 className={`pb-4 px-2 text-[10px] font-bold uppercase tracking-[0.2em] transition-all relative ${activeTab === tab.id
-                                        ? "text-[#C5A059]"
-                                        : "text-gray-400 hover:text-gray-600"
+                                    ? "text-[#C5A059]"
+                                    : "text-gray-400 hover:text-gray-600"
                                     }`}
                             >
                                 {tab.label}
@@ -304,9 +333,17 @@ const MyReservationsPage = () => {
                                                 )}
 
                                                 {r.status === 'CONFIRMED' && (
-                                                    <button className="flex items-center gap-2 px-6 py-2.5 bg-[#1A1A1A] text-white rounded-sm text-[9px] font-bold uppercase tracking-[0.2em] hover:bg-[#C5A059] transition-all shadow-lg">
-                                                        <Download size={14} />
-                                                        Télécharger Billet
+                                                    <button
+                                                        onClick={() => handleDownloadTicket(r._id, r.ticketNumber || "")}
+                                                        disabled={!!downloading}
+                                                        className="flex items-center gap-2 px-6 py-2.5 bg-[#1A1A1A] text-white rounded-sm text-[9px] font-bold uppercase tracking-[0.2em] hover:bg-[#C5A059] transition-all shadow-lg disabled:opacity-50"
+                                                    >
+                                                        {downloading === r._id ? (
+                                                            <Loader2 size={14} className="animate-spin" />
+                                                        ) : (
+                                                            <Download size={14} />
+                                                        )}
+                                                        {downloading === r._id ? "Génération..." : "Télécharger Billet"}
                                                     </button>
                                                 )}
 

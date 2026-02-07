@@ -4,12 +4,16 @@ import { Model } from 'mongoose';
 import { Reservation, ReservationDocument, ReservationStatus } from './schemas/reservation.schema';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { Event, EventDocument } from '../events/schemas/event.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
+import { PdfService } from './pdf.service';
 
 @Injectable()
 export class ReservationsService {
     constructor(
         @InjectModel(Reservation.name) private reservationModel: Model<ReservationDocument>,
         @InjectModel(Event.name) private eventModel: Model<EventDocument>,
+        @InjectModel(User.name) private userModel: Model<UserDocument>,
+        private readonly pdfService: PdfService,
     ) { }
 
     async create(userId: string, createReservationDto: CreateReservationDto): Promise<Reservation> {
@@ -25,7 +29,7 @@ export class ReservationsService {
         const existingReservation = await this.reservationModel.findOne({
             userId: userId as any,
             eventId: eventId as any,
-            status: { $ne: ReservationStatus.CANCELED }
+            status: { $in: [ReservationStatus.PENDING, ReservationStatus.CONFIRMED] }
         });
 
         if (existingReservation) {
@@ -98,7 +102,7 @@ export class ReservationsService {
             userId: userId as any,
             eventId: eventId as any,
             status: { $ne: ReservationStatus.CANCELED }
-        }).exec();
+        }).sort({ createdAt: -1 }).exec();
     }
 
     async cancelByUser(id: string, userId: string): Promise<Reservation> {
@@ -137,5 +141,30 @@ export class ReservationsService {
 
         reservation.status = ReservationStatus.CANCELED;
         return reservation.save();
+    }
+
+    async getTicket(id: string, userId: string): Promise<Buffer> {
+        const reservation = await this.reservationModel.findById(id)
+            .populate('eventId')
+            .populate('userId');
+
+        if (!reservation) {
+            throw new NotFoundException('Réservation non trouvée');
+        }
+
+        // Check ownership
+        if (reservation.userId['_id'].toString() !== userId) {
+            throw new BadRequestException('Vous n\'avez pas accès à ce billet');
+        }
+
+        if (reservation.status !== ReservationStatus.CONFIRMED) {
+            throw new BadRequestException('Seules les réservations confirmées disposent d\'un billet');
+        }
+
+        return this.pdfService.generateTicket(
+            reservation,
+            reservation.eventId as any,
+            reservation.userId as any
+        );
     }
 }

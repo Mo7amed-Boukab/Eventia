@@ -47,5 +47,12 @@ export const reservationService = {
     getStatus: async (eventId: string) => {
         const response = await apiClient.get(`/reservations/status/${eventId}`);
         return response.data;
+    },
+
+    downloadTicket: async (id: string) => {
+        const response = await apiClient.get(`/reservations/${id}/ticket`, {
+            responseType: 'blob',
+        });
+        return response.data;
     }
 };

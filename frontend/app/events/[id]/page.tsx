@@ -16,6 +16,7 @@ import {
     AlertCircle,
     Info,
     CheckCircle2,
+    XCircle,
     Share2,
     Heart,
     Map as MapIcon,
@@ -399,49 +400,77 @@ export default function PublicEventDetails() {
                                             </button>
                                         </div>
                                     </div>
-                                ) : bookingSuccess ? (
-                                    <div className="space-y-4">
-                                        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative text-center" role="alert">
-                                            <strong className="font-bold block text-sm mb-1">C'est réservé !</strong>
-                                            <span className="block sm:inline text-xs">
-                                                {userReservation?.status === 'CONFIRMED'
-                                                    ? "Votre place est confirmée. À bientôt !"
-                                                    : "Votre demande est en attente de confirmation."}
-                                            </span>
-                                        </div>
-                                        <button
-                                            onClick={handleCancelBooking}
-                                            disabled={bookingLoading}
-                                            className="w-full bg-red-50 text-red-600 py-4 rounded-sm font-bold tracking-[0.2em] uppercase text-[10px] hover:bg-red-100 transition-all transform active:scale-95 disabled:opacity-70 border border-red-100"
-                                        >
-                                            {bookingLoading ? (
-                                                <Loader2 className="animate-spin mx-auto" size={16} />
-                                            ) : (
-                                                "Annuler ma réservation"
-                                            )}
-                                        </button>
-                                    </div>
                                 ) : (
-                                    <>
+                                    <div className="space-y-4">
+                                        {/* Status Alert - Always show if we have a non-canceled reservation */}
+                                        {bookingSuccess && userReservation && (
+                                            <div className={`px-4 py-6 rounded-sm border text-center relative ${userReservation?.status === 'REJECTED'
+                                                ? "bg-red-50 border-red-100 text-red-800"
+                                                : "bg-green-50 border-green-100 text-green-800"
+                                                }`} role="alert">
+                                                {userReservation?.status === 'REJECTED' ? (
+                                                    <>
+                                                        <XCircle size={24} className="mx-auto mb-3 text-red-500 opacity-70" />
+                                                        <strong className="font-bold block text-sm mb-1 uppercase tracking-wider">Réservation Refusée</strong>
+                                                        <p className="text-[11px] font-light leading-relaxed">
+                                                            Désolé, votre demande d'inscription a été refusée par l'organisateur.
+                                                        </p>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <CheckCircle2 size={24} className="mx-auto mb-3 text-green-500 opacity-70" />
+                                                        <strong className="font-bold block text-sm mb-1 uppercase tracking-wider">
+                                                            {userReservation?.status === 'CONFIRMED' ? "Place Confirmée" : "Demande Envoyée"}
+                                                        </strong>
+                                                        <p className="text-[11px] font-light leading-relaxed">
+                                                            {userReservation?.status === 'CONFIRMED'
+                                                                ? "Félicitations ! Votre présence est officiellement enregistrée."
+                                                                : "Votre demande est en attente de confirmation par l'organisateur."}
+                                                        </p>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Error Alert */}
                                         {bookingError && (
-                                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4 text-center text-xs">
+                                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative text-center text-xs">
                                                 {bookingError}
                                             </div>
                                         )}
-                                        <button
-                                            onClick={handleBooking}
-                                            disabled={bookingLoading}
-                                            className="w-full bg-[#1A1A1A] text-white py-5 rounded-sm font-bold tracking-[0.4em] uppercase text-xs hover:bg-[#C5A059] transition-all transform hover:scale-[1.02] shadow-2xl active:scale-95 group disabled:opacity-70 disabled:cursor-not-allowed"
-                                        >
-                                            {bookingLoading ? (
-                                                <span className="flex items-center justify-center gap-2">
-                                                    <Loader2 className="animate-spin" size={16} /> Traitement...
-                                                </span>
-                                            ) : (
-                                                <>Réserver mon ticket <ChevronRight size={16} className="inline-block ml-2 group-hover:translate-x-2 transition-transform" /></>
-                                            )}
-                                        </button>
-                                    </>
+
+                                        {/* Action Button */}
+                                        {bookingSuccess && userReservation && userReservation.status !== 'REJECTED' ? (
+                                            <button
+                                                onClick={handleCancelBooking}
+                                                disabled={bookingLoading}
+                                                className="w-full bg-white text-gray-400 py-4 rounded-sm font-bold tracking-[0.2em] uppercase text-[10px] hover:text-red-600 hover:bg-red-50 transition-all border border-gray-100 hover:border-red-100 active:scale-95 disabled:opacity-70"
+                                            >
+                                                {bookingLoading ? (
+                                                    <Loader2 className="animate-spin mx-auto" size={16} />
+                                                ) : (
+                                                    "Annuler ma réservation"
+                                                )}
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={handleBooking}
+                                                disabled={bookingLoading}
+                                                className="w-full bg-[#1A1A1A] text-white py-5 rounded-sm font-bold tracking-[0.4em] uppercase text-xs hover:bg-[#C5A059] transition-all transform hover:scale-[1.02] shadow-2xl active:scale-95 group disabled:opacity-70 disabled:cursor-not-allowed"
+                                            >
+                                                {bookingLoading ? (
+                                                    <span className="flex items-center justify-center gap-2">
+                                                        <Loader2 className="animate-spin" size={16} /> Traitement...
+                                                    </span>
+                                                ) : (
+                                                    <>
+                                                        {userReservation?.status === 'REJECTED' ? "Réessayer la demande" : "Réserver mon ticket"}
+                                                        <ChevronRight size={16} className="inline-block ml-2 group-hover:translate-x-2 transition-transform" />
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
+                                    </div>
                                 )}
 
                                 <p className="mt-8 text-center text-[9px] text-gray-400 font-medium uppercase tracking-[0.2em] italic">Garanti 100% sécurisé par Eventia</p>
