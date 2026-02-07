@@ -383,7 +383,23 @@ export default function PublicEventDetails() {
                                     </div>
                                 </div>
 
-                                {bookingSuccess ? (
+                                {user?.role === 'ADMIN' ? (
+                                    <div className="space-y-4">
+                                        <div className="bg-[#F5F2EB] border border-[#C5A059]/20 text-[#1A1A1A] px-6 py-8 rounded-sm relative text-center" role="alert">
+                                            <ShieldCheck size={32} className="mx-auto text-[#C5A059] mb-4 opacity-50" />
+                                            <strong className="font-bold block text-[10px] uppercase tracking-[0.3em] mb-2 text-[#C5A059]">Accès Administrateur</strong>
+                                            <p className="text-[11px] font-light text-gray-500 leading-relaxed mb-6">
+                                                En tant qu'administrateur, vous avez un accès complet à la gestion. La réservation directe est réservée aux participants.
+                                            </p>
+                                            <button
+                                                onClick={() => router.push('/admin/dashboard')}
+                                                className="w-full bg-[#1A1A1A] text-white py-4 rounded-sm font-bold tracking-[0.2em] uppercase text-[10px] hover:bg-[#C5A059] transition-all shadow-lg active:scale-95"
+                                            >
+                                                Tableau de bord
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : bookingSuccess ? (
                                     <div className="space-y-4">
                                         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded relative text-center" role="alert">
                                             <strong className="font-bold block text-sm mb-1">C'est réservé !</strong>
@@ -461,7 +477,14 @@ export default function PublicEventDetails() {
                         <p className="text-[8px] font-bold text-[#C5A059] uppercase tracking-[0.2em] mb-0.5">Tarif d'accès</p>
                         <p className="text-xl font-bold text-white tracking-tight">{event.price === 0 ? "Offert" : `${event.price} MAD`}</p>
                     </div>
-                    {bookingSuccess ? (
+                    {user?.role === 'ADMIN' ? (
+                        <button
+                            onClick={() => router.push('/admin/dashboard')}
+                            className="bg-white/10 text-white px-6 py-4 rounded-sm font-bold tracking-[0.2em] uppercase text-[10px] shadow-xl active:scale-95 transition-all border border-white/20"
+                        >
+                            Dashboard
+                        </button>
+                    ) : bookingSuccess ? (
                         <button
                             onClick={handleCancelBooking}
                             disabled={bookingLoading}

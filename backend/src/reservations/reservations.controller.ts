@@ -10,7 +10,8 @@ import { UserRole } from '../users/schemas/user.schema';
 export class ReservationsController {
     constructor(private readonly reservationsService: ReservationsService) { }
 
-    @UseGuards(JwtAuthGuard)
+    @Roles(UserRole.PARTICIPANT)
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Post()
     create(@Request() req, @Body() createReservationDto: CreateReservationDto) {
         return this.reservationsService.create(req.user.userId, createReservationDto);

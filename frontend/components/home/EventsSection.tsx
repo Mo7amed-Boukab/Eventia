@@ -5,8 +5,10 @@ import { Calendar, MapPin, ChevronRight, Loader2 } from "lucide-react";
 import { eventService } from "@/lib/services/eventService";
 import { Event, EventStatus } from "@/lib/types";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 const EventsSection: React.FC = () => {
+  const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -136,7 +138,7 @@ const EventsSection: React.FC = () => {
                       href={`/events/${event._id}`}
                       className="text-[#1A1A1A] font-bold text-[10px] hover:text-[#C5A059] transition-colors flex items-center gap-1 uppercase tracking-[0.2em] group/btn shrink-0"
                     >
-                      Réserver{" "}
+                      {user?.role === 'ADMIN' ? "Gérer" : "Réserver"}{" "}
                       <ChevronRight
                         size={14}
                         className="group-hover/btn:translate-x-1 transition-transform"

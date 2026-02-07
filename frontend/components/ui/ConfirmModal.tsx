@@ -13,6 +13,7 @@ interface ConfirmModalProps {
     cancelText?: string;
     variant?: "danger" | "warning" | "success" | "primary" | "premium";
     isLoading?: boolean;
+    icon?: React.ReactNode;
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -25,6 +26,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     cancelText = "Annuler",
     variant = "danger",
     isLoading = false,
+    icon: customIcon,
 }) => {
     // Prevent scrolling when modal is open
     useEffect(() => {
@@ -41,32 +43,35 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     if (!isOpen) return null;
 
     const getVariantStyles = () => {
+        // Base premium style for all variants as requested
+        const premiumStyle = {
+            iconBg: "bg-[#FDFBF7] text-[#C5A059] border border-[#C5A059]/10",
+            button: "bg-[#1A1A1A] hover:bg-[#C5A059] shadow-gray-200",
+            line: "bg-[#C5A059]",
+        };
+
         switch (variant) {
             case "danger":
                 return {
-                    icon: <AlertTriangle size={24} />,
-                    iconBg: "bg-red-50 text-red-600",
-                    button: "bg-red-600 hover:bg-red-700 shadow-red-200",
+                    ...premiumStyle,
+                    icon: customIcon || <AlertTriangle size={24} />,
                 };
             case "success":
                 return {
-                    icon: <CheckCircle2 size={24} />,
-                    iconBg: "bg-green-50 text-green-600",
-                    button: "bg-green-600 hover:bg-green-700 shadow-green-200",
+                    ...premiumStyle,
+                    icon: customIcon || <CheckCircle2 size={24} />,
+                };
+            case "warning":
+                return {
+                    ...premiumStyle,
+                    icon: customIcon || <HelpCircle size={24} />,
                 };
             case "primary":
             case "premium":
-                return {
-                    icon: <ShieldCheck size={24} />,
-                    iconBg: "bg-[#FDFBF7] text-[#C5A059] border border-[#C5A059]/10",
-                    button: "bg-[#1A1A1A] hover:bg-[#C5A059] shadow-gray-200",
-                };
-            case "warning":
             default:
                 return {
-                    icon: <HelpCircle size={24} />,
-                    iconBg: "bg-amber-50 text-amber-500",
-                    button: "bg-amber-600 hover:bg-amber-700 shadow-amber-200",
+                    ...premiumStyle,
+                    icon: customIcon || <ShieldCheck size={24} />,
                 };
         }
     };
@@ -75,7 +80,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-            {/* Backdrop with sophisticated blur */}
+            {/* Backdrop with subtle overlay */}
             <div
                 className="absolute inset-0 bg-[#1A1A1A]/10 animate-in fade-in duration-300"
                 onClick={onClose}
@@ -84,12 +89,12 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             {/* Modal Content */}
             <div className="relative bg-white w-full max-w-md rounded-sm shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 ease-out">
                 {/* Decorative top line */}
-                <div className={`h-1 w-full ${variant === "premium" || variant === "primary" ? "bg-[#C5A059]" : variant === "danger" ? "bg-red-500" : "bg-green-500"}`} />
+                <div className={`h-1 w-full ${styles.line}`} />
 
                 <div className="p-8">
                     <div className="flex flex-col items-center text-center">
                         <div
-                            className={`p-4 rounded-full mb-6 ${styles.iconBg} shadow`}
+                            className={`p-4 rounded-full mb-6 ${styles.iconBg} shadow flex items-center justify-center`}
                         >
                             {styles.icon}
                         </div>
@@ -114,10 +119,11 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         disabled={isLoading}
                         className={`w-full sm:flex-1 py-4 rounded-sm text-white text-[10px] font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 disabled:opacity-50 ${styles.button}`}
                     >
-                        {isLoading && (
+                        {isLoading ? (
                             <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            confirmText
                         )}
-                        {confirmText}
                     </button>
 
                     <button
