@@ -1,19 +1,19 @@
 services:
   mongo:
     image: mongo:7
-    container_name: mongo
-    restart: always
-    ports:
-      - "27017:27017"
+    container_name: eventia-mongo
+    restart: unless-stopped
     volumes:
       - mongo_data:/data/db
     networks:
       - app-network
+    ports:
+      - "27017:27017"
 
   mongo-express:
     image: mongo-express
     container_name: mongo-express
-    restart: always
+    restart: unless-stopped
     ports:
       - "8081:8081"
     environment:
@@ -25,26 +25,42 @@ services:
       - app-network
 
   backend:
-    build: ./backend
-    container_name: backend
-    ports:
-      - "4000:4000"
-    env_file:
-      - ./backend/.env
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: eventia-backend
+    restart: unless-stopped
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - PORT=${PORT}
+      - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN}
     depends_on:
       - mongo
     networks:
       - app-network
+    ports:
+      - "4000:4000"
 
   frontend:
-    build: ./frontend
-    container_name: frontend
-    ports:
-      - "3000:3000"
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+    container_name: eventia-frontend
+    restart: unless-stopped
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     depends_on:
       - backend
     networks:
       - app-network
+    ports:
+      - "3000:3000"
 
 volumes:
   mongo_data:
