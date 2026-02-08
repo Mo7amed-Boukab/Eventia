@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 const PDFDocument = require('pdfkit');
 import * as QRCode from 'qrcode';
-import { Reservation, ReservationDocument } from './schemas/reservation.schema';
+import { ReservationDocument } from './schemas/reservation.schema';
 import { Event } from '../events/schemas/event.schema';
 import { User } from '../users/schemas/user.schema';
 
@@ -127,7 +127,7 @@ export class PdfService {
 
                 doc.end();
             } catch (error) {
-                reject(error);
+                reject(error instanceof Error ? error : new Error(String(error)));
             }
         });
     }

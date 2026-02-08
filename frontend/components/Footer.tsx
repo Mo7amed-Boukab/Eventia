@@ -34,7 +34,7 @@ const Footer: React.FC = () => {
             </Link>
             <p className="text-gray-400 leading-relaxed font-light">
               Votre partenaire événementiel pour des moments inoubliables. Nous
-              créons des expériences d'exception à travers tout le Maroc.
+              créons des expériences d&apos;exception à travers tout le Maroc.
             </p>
             <div className="flex gap-4">
               <a
@@ -64,9 +64,9 @@ const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-4 text-gray-400">
               <li>
-                <a href="/" className="hover:text-white transition-colors">
+                <Link href="/" className="hover:text-white transition-colors">
                   Accueil
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#about" className="hover:text-white transition-colors">

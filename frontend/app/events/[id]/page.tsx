@@ -1,32 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
     Calendar,
     MapPin,
-    DollarSign,
-    Users,
     ArrowLeft,
     Clock,
-    Tag,
-    ChevronRight,
     Loader2,
     AlertCircle,
     Info,
     CheckCircle2,
     XCircle,
-    Share2,
-    Heart,
-    Map as MapIcon,
+    ChevronRight,
     Wifi,
     Coffee,
     Award,
     ShieldCheck
 } from "lucide-react";
 import { eventService } from "@/lib/services/eventService";
-import { Event, EventStatus } from "@/lib/types";
+import { Event } from "@/lib/types";
 import { useAuth } from "@/context/AuthContext";
 import { reservationService } from "@/lib/services/reservationService";
 import ConfirmModal from "@/components/ui/ConfirmModal";
@@ -49,31 +44,7 @@ export default function PublicEventDetails() {
 
     const STATIC_IMAGE = "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=2069&auto=format&fit=crop";
 
-    useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 200);
-        window.addEventListener("scroll", handleScroll);
-        if (id) {
-            fetchEvent();
-            if (isAuthenticated) {
-                checkReservationStatus();
-            }
-        }
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, [id, isAuthenticated]);
-
-    const checkReservationStatus = async () => {
-        try {
-            const data = await reservationService.getStatus(id as string);
-            if (data.isReserved) {
-                setUserReservation(data.reservation);
-                setBookingSuccess(true);
-            }
-        } catch (err) {
-            console.error("Error checking reservation status:", err);
-        }
-    };
-
-    const fetchEvent = async () => {
+    const fetchEvent = useCallback(async () => {
         try {
             setIsLoading(true);
             const data = await eventService.getById(id as string);
@@ -84,7 +55,31 @@ export default function PublicEventDetails() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [id]);
+
+    const checkReservationStatus = useCallback(async () => {
+        try {
+            const data = await reservationService.getStatus(id as string);
+            if (data.isReserved) {
+                setUserReservation(data.reservation);
+                setBookingSuccess(true);
+            }
+        } catch (err) {
+            console.error("Error checking reservation status:", err);
+        }
+    }, [id]);
+
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 200);
+        window.addEventListener("scroll", handleScroll);
+        if (id) {
+            fetchEvent();
+            if (isAuthenticated) {
+                checkReservationStatus();
+            }
+        }
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, [id, isAuthenticated, fetchEvent, checkReservationStatus]);
 
     const handleBooking = async () => {
         if (!isAuthenticated) {
@@ -154,12 +149,12 @@ export default function PublicEventDetails() {
             <div className="h-screen flex flex-col items-center justify-center text-center px-4 bg-[#FDFBF7]">
                 <AlertCircle size={48} className="text-red-500 mb-4 opacity-20" />
                 <h2 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: "serif" }}>Événement Introuvable</h2>
-                <p className="text-gray-500 mb-8 max-w-md font-light">Cet événement n'est pas disponible ou a été déplacé.</p>
+                <p className="text-gray-500 mb-8 max-w-md font-light">Cet événement n&apos;est pas disponible ou a été déplacé.</p>
                 <Link
                     href="/#events"
                     className="flex items-center gap-3 px-8 py-3.5 bg-[#1A1A1A] text-white rounded-sm text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#C5A059] transition-all shadow-xl"
                 >
-                    <ArrowLeft size={14} /> Retour à l'accueil
+                    <ArrowLeft size={14} /> Retour à l&apos;accueil
                 </Link>
             </div>
         );
@@ -249,9 +244,12 @@ export default function PublicEventDetails() {
 
                         <div className="relative group animate-in fade-in zoom-in-95 duration-1000">
                             <div className="aspect-[4/3] rounded-lg overflow-hidden shadow-2xl relative z-10">
-                                <img
+                                <Image
                                     src={event.image || STATIC_IMAGE}
                                     alt={event.title}
+                                    width={800}
+                                    height={600}
+                                    unoptimized
                                     className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110"
                                 />
                                 <div className="absolute inset-0 bg-black/10 transition-opacity group-hover:opacity-0"></div>
@@ -279,7 +277,7 @@ export default function PublicEventDetails() {
                     <div className="lg:col-span-7 space-y-20">
                         <section className="space-y-10">
                             <div className="flex items-center gap-4">
-                                <h2 className="text-3xl font-bold text-gray-900" style={{ fontFamily: "serif" }}>L'expérience <span className="text-[#C5A059] italic">Eventia</span></h2>
+                                <h2 className="text-3xl font-bold text-gray-900" style={{ fontFamily: "serif" }}>L&apos;expérience <span className="text-[#C5A059] italic">Eventia</span></h2>
                                 <div className="flex-1 h-[1px] bg-gray-100"></div>
                             </div>
 
@@ -314,7 +312,7 @@ export default function PublicEventDetails() {
                                     </div>
                                     <div>
                                         <p className="font-bold text-sm text-gray-900 mb-1">Buffet & Networking</p>
-                                        <p className="text-xs text-gray-400 font-light italic">Moments privilégiés d'échanges relaxants.</p>
+                                        <p className="text-xs text-gray-400 font-light italic">Moments privilégiés d&apos;échanges relaxants.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-5 p-6 bg-white border border-gray-50 rounded group hover:border-[#C5A059]/30 transition-all">
@@ -379,7 +377,7 @@ export default function PublicEventDetails() {
                                     <div className="flex items-center gap-4 bg-[#FDFBF7] p-4 rounded border border-[#C5A059]/10">
                                         <Info size={16} className="text-[#C5A059] flex-shrink-0" />
                                         <p className="text-[10px] text-gray-600 font-light leading-relaxed">
-                                            Votre réservation inclut l'accès illimité aux ateliers et la documentation numérique.
+                                            Votre réservation inclut l&apos;accès illimité aux ateliers et la documentation numérique.
                                         </p>
                                     </div>
                                 </div>
@@ -390,7 +388,7 @@ export default function PublicEventDetails() {
                                             <ShieldCheck size={32} className="mx-auto text-[#C5A059] mb-4 opacity-50" />
                                             <strong className="font-bold block text-[10px] uppercase tracking-[0.3em] mb-2 text-[#C5A059]">Accès Administrateur</strong>
                                             <p className="text-[11px] font-light text-gray-500 leading-relaxed mb-6">
-                                                En tant qu'administrateur, vous avez un accès complet à la gestion. La réservation directe est réservée aux participants.
+                                                En tant qu&apos;administrateur, vous avez un accès complet à la gestion. La réservation directe est réservée aux participants.
                                             </p>
                                             <button
                                                 onClick={() => router.push('/admin/dashboard')}
@@ -413,7 +411,7 @@ export default function PublicEventDetails() {
                                                         <XCircle size={24} className="mx-auto mb-3 text-red-500 opacity-70" />
                                                         <strong className="font-bold block text-sm mb-1 uppercase tracking-wider">Réservation Refusée</strong>
                                                         <p className="text-[11px] font-light leading-relaxed">
-                                                            Désolé, votre demande d'inscription a été refusée par l'organisateur.
+                                                            Désolé, votre demande d&apos;inscription a été refusée par l&apos;organisateur.
                                                         </p>
                                                     </>
                                                 ) : (
@@ -480,7 +478,7 @@ export default function PublicEventDetails() {
                             <div className="bg-[#1A1A1A] p-10 rounded-lg relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#C5A059]/10 -translate-y-1/2 translate-x-1/2 rounded-full blur-2xl group-hover:bg-[#C5A059]/20 transition-colors"></div>
 
-                                <h4 className="text-[10px] font-bold text-[#C5A059] uppercase tracking-[0.4em] mb-8">Maître d'œuvre</h4>
+                                <h4 className="text-[10px] font-bold text-[#C5A059] uppercase tracking-[0.4em] mb-8">Maître d&apos;œuvre</h4>
                                 <div className="flex items-center gap-6 mb-8">
                                     <div className="w-16 h-16 rounded-sm bg-[#C5A059] flex items-center justify-center font-bold text-2xl text-white shadow-xl shadow-[#C5A059]/20">
                                         E
@@ -503,7 +501,7 @@ export default function PublicEventDetails() {
             <div className={`fixed bottom-0 left-0 right-0 z-50 p-4 transition-transform duration-500 lg:hidden ${scrolled ? 'translate-y-0' : 'translate-y-full'}`}>
                 <div className="bg-[#1A1A1A] p-4 flex items-center justify-between shadow-2xl rounded-sm border border-white/10">
                     <div className="px-2">
-                        <p className="text-[8px] font-bold text-[#C5A059] uppercase tracking-[0.2em] mb-0.5">Tarif d'accès</p>
+                        <p className="text-[8px] font-bold text-[#C5A059] uppercase tracking-[0.2em] mb-0.5">Tarif d&apos;accès</p>
                         <p className="text-xl font-bold text-white tracking-tight">{event.price === 0 ? "Offert" : `${event.price} MAD`}</p>
                     </div>
                     {user?.role === 'ADMIN' ? (
