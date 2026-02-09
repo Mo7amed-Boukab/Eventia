@@ -1,12 +1,8 @@
-"use client";
-
 import { Geist, Geist_Mono } from "next/font/google";
-import { usePathname } from "next/navigation";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/context/ToastContext";
+import ConditionalLayout from "@/components/ConditionalLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,32 +14,24 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const metadata = {
+  title: "Eventia - Plateforme événementielle premium",
+  description: "Votre partenaire événementiel pour des moments inoubliables",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
-  const isAdmin = pathname?.startsWith("/admin");
-
   return (
     <html lang="fr">
-      <head>
-        <title>Eventia - Plateforme événementielle premium</title>
-        <meta name="description" content="Votre partenaire événementiel pour des moments inoubliables" />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
           <ToastProvider>
-            <div className="flex flex-col min-h-screen">
-              {!isAdmin && <Header />}
-              <div className="grow">
-                {children}
-              </div>
-              {!isAdmin && <Footer />}
-            </div>
+            <ConditionalLayout>{children}</ConditionalLayout>
           </ToastProvider>
         </AuthProvider>
       </body>

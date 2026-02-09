@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { Star } from 'lucide-react';
 import { MOCK_TESTIMONIALS } from '@/lib/constants';
@@ -27,9 +25,9 @@ const TestimonialsSection: React.FC = () => {
                 "{testimonial.content}"
               </p>
               <div className="flex items-center gap-4 border-t border-gray-200 pt-8">
-                <img 
-                  src={testimonial.avatar} 
-                  alt={testimonial.name} 
+                <img
+                  src={testimonial.avatar}
+                  alt={testimonial.name}
                   className="w-14 h-14 rounded-full object-cover shadow-md group-hover:scale-110 transition-transform"
                 />
                 <div>
