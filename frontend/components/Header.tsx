@@ -81,15 +81,28 @@ const Header: React.FC = () => {
                 <span className={`text-sm font-medium ${isScrolled || !isHome ? "text-gray-900" : "text-white"}`}>
                   Bienvenue, <span className="text-[#C5A059] font-bold">{user?.first_name}</span>
                 </span>
-                <Link
-                  href={user?.role === 'ADMIN' ? "/admin/dashboard" : "/my-reservations"}
-                  className={`text-[10px] font-bold uppercase tracking-[0.2em] px-5 py-2.5 border rounded-sm transition-all shadow-sm ${isScrolled || !isHome
-                      ? "border-[#1A1A1A]/10 text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white"
+                <div className="flex items-center gap-2">
+                  {user?.role !== 'ADMIN' && (
+                    <Link
+                      href="/profile"
+                      className={`text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-2.5 border rounded transition-all ${isScrolled || !isHome
+                        ? "border-[#1A1A1A]/10 text-[#1A1A1A] hover:bg-[#C5A059] hover:text-white hover:border-[#C5A059]"
+                        : "border-white/20 text-white hover:bg-white hover:text-[#1A1A1A]"
+                        }`}
+                    >
+                      Profil
+                    </Link>
+                  )}
+                  <Link
+                    href={user?.role === 'ADMIN' ? "/admin/dashboard" : "/my-reservations"}
+                    className={`text-[10px] font-bold uppercase tracking-[0.2em] px-5 py-2.5 border rounded-sm transition-all shadow-sm ${isScrolled || !isHome
+                      ? "bg-[#1A1A1A] text-white border-[#1A1A1A] hover:bg-[#C5A059] hover:border-[#C5A059]"
                       : "border-white/20 text-white hover:bg-white hover:text-[#1A1A1A]"
-                    }`}
-                >
-                  {user?.role === 'ADMIN' ? "Dashboard Admin" : "Mes Réservations"}
-                </Link>
+                      }`}
+                  >
+                    {user?.role === 'ADMIN' ? "Dashboard Admin" : "Mes Réservations"}
+                  </Link>
+                </div>
                 <button
                   onClick={handleLogout}
                   className={`flex items-center gap-2 text-sm font-semibold transition-colors ${isScrolled || !isHome
@@ -97,7 +110,7 @@ const Header: React.FC = () => {
                     : "text-white hover:text-red-400"
                     }`}
                 >
-                  <LogOut size={16} /> se déconnecter
+                  <LogOut size={16} />
                 </button>
               </div>
             ) : (
@@ -153,13 +166,24 @@ const Header: React.FC = () => {
                   <div className="text-gray-900 font-medium pb-2 text-center">
                     Bienvenue, <span className="text-[#C5A059] font-bold">{user?.first_name}</span>
                   </div>
-                  <Link
-                    href={user?.role === 'ADMIN' ? "/admin/dashboard" : "/my-reservations"}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center bg-[#1A1A1A] text-white py-3 rounded-sm font-bold text-[10px] uppercase tracking-wider"
-                  >
-                    {user?.role === 'ADMIN' ? "Dashboard Admin" : "Mes Réservations"}
-                  </Link>
+                  <div className="flex flex-col gap-2">
+                    {user?.role !== 'ADMIN' && (
+                      <Link
+                        href="/profile"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="w-full flex items-center justify-center border border-[#1A1A1A]/10 text-[#1A1A1A] py-3 rounded-sm font-bold text-[10px] uppercase tracking-wider"
+                      >
+                        Mon Profil
+                      </Link>
+                    )}
+                    <Link
+                      href={user?.role === 'ADMIN' ? "/admin/dashboard" : "/my-reservations"}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="w-full flex items-center justify-center bg-[#1A1A1A] text-white py-3 rounded-sm font-bold text-[10px] uppercase tracking-wider"
+                    >
+                      {user?.role === 'ADMIN' ? "Dashboard Admin" : "Mes Réservations"}
+                    </Link>
+                  </div>
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 py-3 rounded-sm font-bold text-sm uppercase tracking-wider"

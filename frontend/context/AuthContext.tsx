@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../lib/types';
 import authService from '../lib/services/authService';
+import { userService } from '../lib/services/userService';
 
 interface AuthContextType {
     user: User | null;
@@ -12,6 +13,7 @@ interface AuthContextType {
     register: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
+    setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,7 +31,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         try {
-            const userData = await authService.getProfile();
+            const userData = await userService.getMe();
             setUser(userData);
         } catch (error) {
             console.error('Failed to fetch user profile:', error);
@@ -92,6 +94,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         register,
         logout,
         checkAuth,
+        setUser,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

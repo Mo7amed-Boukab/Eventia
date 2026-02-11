@@ -38,10 +38,14 @@ const MyReservationsPage = () => {
     const [downloading, setDownloading] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!authLoading && !isAuthenticated) {
-            router.push("/login?redirect=/my-reservations");
+        if (!authLoading) {
+            if (!isAuthenticated) {
+                router.push("/login?redirect=/my-reservations");
+            } else if (user?.role === 'ADMIN') {
+                router.push("/admin/dashboard");
+            }
         }
-    }, [authLoading, isAuthenticated, router]);
+    }, [authLoading, isAuthenticated, user, router]);
 
     const fetchReservations = async () => {
         try {

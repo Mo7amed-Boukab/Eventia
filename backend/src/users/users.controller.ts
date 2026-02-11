@@ -12,18 +12,18 @@ export class UsersController {
 
     @Get('me')
     getMe(@Request() req) {
-        return this.usersService.findOne(req.user.sub);
+        return this.usersService.findOne(req.user.userId);
     }
 
     @Patch('me')
     updateMe(@Request() req, @Body() body) {
-        return this.usersService.updateProfile(req.user.sub, body);
+        return this.usersService.updateProfile(req.user.userId, body);
     }
 
     @Patch('me/password')
     updateMyPassword(@Request() req, @Body() body) {
         const { oldPassword, newPassword } = body;
-        return this.usersService.updatePassword(req.user.sub, oldPassword, newPassword);
+        return this.usersService.updatePassword(req.user.userId, oldPassword, newPassword);
     }
 
     @Get()

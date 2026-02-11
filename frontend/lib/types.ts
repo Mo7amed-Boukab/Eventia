@@ -4,6 +4,8 @@ export interface User {
   first_name: string;
   last_name: string;
   role: "ADMIN" | "PARTICIPANT";
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AuthResponse {
