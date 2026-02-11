@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/context/ToastContext";
-import { reservationService, Reservation } from "@/lib/services/reservationService";
+import { useAuthStore } from "@/stores/authStore";
+import { useToastStore } from "@/stores/toastStore";
+import { useReservationStore } from "@/stores/reservationStore";
+import { Reservation } from "@/lib/services/reservationService";
 import {
     Calendar,
     MapPin,
@@ -23,19 +24,24 @@ import { useRouter } from "next/navigation";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 
 const MyReservationsPage = () => {
-    const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-    const { toast } = useToast();
+    const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();
+    const toast = useToastStore();
     const router = useRouter();
-    const [reservations, setReservations] = useState<Reservation[]>([]);
-    const [loading, setLoading] = useState(true);
+    const {
+        myReservations: reservations,
+        isMyLoading: loading,
+        actionLoading,
+        fetchMyReservations,
+        cancelReservation,
+        downloadTicket,
+    } = useReservationStore();
+
     const [activeTab, setActiveTab] = useState<'ALL' | 'CONFIRMED' | 'PENDING' | 'OTHERS'>('ALL');
     const [cancelModal, setCancelModal] = useState<{ isOpen: boolean; id: string; ticket: string }>({
         isOpen: false,
         id: "",
         ticket: ""
     });
-    const [isCancelling, setIsCancelling] = useState(false);
-    const [downloading, setDownloading] = useState<string | null>(null);
 
     useEffect(() => {
         if (!authLoading) {
@@ -47,24 +53,11 @@ const MyReservationsPage = () => {
         }
     }, [authLoading, isAuthenticated, user, router]);
 
-    const fetchReservations = async () => {
-        try {
-            setLoading(true);
-            const data = await reservationService.getMyReservations();
-            setReservations(data);
-        } catch (err) {
-            console.error("Error fetching reservations:", err);
-            toast.error("Impossible de charger vos réservations.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
         if (isAuthenticated) {
-            fetchReservations();
+            fetchMyReservations();
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, fetchMyReservations]);
 
     const handleCancelClick = (id: string, ticket: string) => {
         setCancelModal({ isOpen: true, id, ticket });
@@ -72,44 +65,23 @@ const MyReservationsPage = () => {
 
     const handleConfirmCancel = async () => {
         try {
-            setIsCancelling(true);
-            await reservationService.cancel(cancelModal.id);
+            await cancelReservation(cancelModal.id);
             toast.success("Votre réservation a été annulée avec succès.");
             setCancelModal({ isOpen: false, id: "", ticket: "" });
-            await fetchReservations();
+            await fetchMyReservations();
         } catch (err) {
             console.error("Cancel failed", err);
             toast.error("Une erreur est survenue lors de l'annulation.");
-        } finally {
-            setIsCancelling(false);
         }
     };
 
     const handleDownloadTicket = async (id: string, ticketNum: string) => {
         try {
-            setDownloading(id);
-            const blob = await reservationService.downloadTicket(id);
-
-            // Create a URL for the blob
-            const url = window.URL.createObjectURL(new Blob([blob]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `Ticket-Eventia-${ticketNum}.pdf`);
-
-            // Append to body, click, and remove
-            document.body.appendChild(link);
-            link.click();
-            link.parentNode?.removeChild(link);
-
-            // Clean up the URL
-            window.URL.revokeObjectURL(url);
-
+            await downloadTicket(id, ticketNum);
             toast.success("Votre billet est prêt ! Ouverture du téléchargement.");
         } catch (err) {
             console.error("Download failed", err);
             toast.error("Impossible de générer votre billet pour le moment.");
-        } finally {
-            setDownloading(null);
         }
     };
 
@@ -339,15 +311,15 @@ const MyReservationsPage = () => {
                                                 {r.status === 'CONFIRMED' && (
                                                     <button
                                                         onClick={() => handleDownloadTicket(r._id, r.ticketNumber || "")}
-                                                        disabled={!!downloading}
+                                                        disabled={!!actionLoading}
                                                         className="flex items-center gap-2 px-6 py-2.5 bg-[#1A1A1A] text-white rounded-sm text-[9px] font-bold uppercase tracking-[0.2em] hover:bg-[#C5A059] transition-all shadow-lg disabled:opacity-50"
                                                     >
-                                                        {downloading === r._id ? (
+                                                        {actionLoading === r._id ? (
                                                             <Loader2 size={14} className="animate-spin" />
                                                         ) : (
                                                             <Download size={14} />
                                                         )}
-                                                        {downloading === r._id ? "Génération..." : "Télécharger Billet"}
+                                                        {actionLoading === r._id ? "Génération..." : "Télécharger Billet"}
                                                     </button>
                                                 )}
 
@@ -378,7 +350,7 @@ const MyReservationsPage = () => {
                 confirmText="Oui, annuler"
                 cancelText="Garder ma place"
                 variant="danger"
-                isLoading={isCancelling}
+                isLoading={!!actionLoading}
             />
         </div>
     );

@@ -4,14 +4,14 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/context/ToastContext";
+import { useAuthStore } from "@/stores/authStore";
+import { useToastStore } from "@/stores/toastStore";
 
 const LoginForm: React.FC = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { login, user, isAuthenticated, isLoading: authLoading } = useAuth();
-    const { toast } = useToast();
+    const { login, user, isAuthenticated, isLoading: authLoading } = useAuthStore();
+    const toast = useToastStore();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");

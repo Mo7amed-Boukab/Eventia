@@ -19,7 +19,8 @@ import {
   Reservation,
 } from "@/lib/services/reservationService";
 import ConfirmModal from "@/components/ui/ConfirmModal";
-import { useToast } from "@/context/ToastContext";
+import { useToastStore } from "@/stores/toastStore";
+import { useReservationStore } from "@/stores/reservationStore";
 
 // Custom Select Component
 interface CustomSelectProps {
@@ -98,10 +99,17 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 };
 
 const ReservationsList: React.FC = () => {
-  const { toast } = useToast();
-  const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const toast = useToastStore();
+  const {
+    allReservations: reservations,
+    isAdminLoading: loading,
+    actionLoading,
+    fetchAllReservations,
+    confirmReservation,
+    rejectReservation,
+    adminCancelReservation,
+  } = useReservationStore();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
@@ -122,21 +130,8 @@ const ReservationsList: React.FC = () => {
   });
 
   useEffect(() => {
-    fetchReservations();
-  }, []);
-
-  const fetchReservations = async () => {
-    try {
-      setLoading(true);
-      const data = await reservationService.getAll();
-      setReservations(data);
-    } catch (err) {
-      console.error("Failed to fetch reservations", err);
-      setError("Impossible de charger les réservations");
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchAllReservations();
+  }, [fetchAllReservations]);
 
   const handleActionClick = (
     id: string,
@@ -150,16 +145,13 @@ const ReservationsList: React.FC = () => {
     if (!modal.type || !modal.id) return;
 
     try {
-      setActionLoading(modal.id);
       if (modal.type === "CONFIRM") {
-        await reservationService.confirm(modal.id);
+        await confirmReservation(modal.id);
       } else if (modal.type === "REJECT") {
-        await reservationService.reject(modal.id);
+        await rejectReservation(modal.id);
       } else if (modal.type === "CANCEL") {
-        await reservationService.cancel(modal.id);
+        await adminCancelReservation(modal.id);
       }
-      // Refresh list
-      await fetchReservations();
       setModal({ isOpen: false, type: null, id: "", ticket: "" });
 
       const actionName =
@@ -178,8 +170,6 @@ const ReservationsList: React.FC = () => {
         "Une erreur est survenue lors de l'exécution de l'action.",
         "Action échouée",
       );
-    } finally {
-      setActionLoading(null);
     }
   };
 

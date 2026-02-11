@@ -1,12 +1,12 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PublicEventDetails from '@/app/events/[id]/page';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/authStore';
 import { useParams, useRouter } from 'next/navigation';
 import { eventService } from '@/lib/services/eventService';
 import { reservationService } from '@/lib/services/reservationService';
 
 // Mock dependencies
-jest.mock('@/context/AuthContext');
+jest.mock('@/stores/authStore');
 jest.mock('next/navigation');
 jest.mock('@/lib/services/eventService');
 jest.mock('@/lib/services/reservationService');
@@ -32,7 +32,7 @@ describe('Reservation Flow', () => {
     });
 
     it('should allow a participant to book an event', async () => {
-        (useAuth as jest.Mock).mockReturnValue({ isAuthenticated: true, user: { role: 'PARTICIPANT' } });
+        (useAuthStore as unknown as jest.Mock).mockReturnValue({ isAuthenticated: true, user: { role: 'PARTICIPANT' } });
         (reservationService.create as jest.Mock).mockResolvedValue({ _id: 'res123', status: 'PENDING' });
 
         render(<PublicEventDetails />);
@@ -50,7 +50,7 @@ describe('Reservation Flow', () => {
     });
 
     it('should redirect to login if not authenticated', async () => {
-        (useAuth as jest.Mock).mockReturnValue({ isAuthenticated: false });
+        (useAuthStore as unknown as jest.Mock).mockReturnValue({ isAuthenticated: false });
         const mockPush = jest.fn();
         (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
 

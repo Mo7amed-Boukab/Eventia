@@ -2,18 +2,18 @@ import { render, screen } from '@testing-library/react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ContactSection from '@/components/home/ContactSection';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/authStore';
 import { usePathname, useRouter } from 'next/navigation';
 
 // Mock dependencies
-jest.mock('@/context/AuthContext');
+jest.mock('@/stores/authStore');
 jest.mock('next/navigation');
 
 describe('Common Components', () => {
     beforeEach(() => {
         (usePathname as jest.Mock).mockReturnValue('/');
         (useRouter as jest.Mock).mockReturnValue({ push: jest.fn() });
-        (useAuth as jest.Mock).mockReturnValue({
+        (useAuthStore as unknown as jest.Mock).mockReturnValue({
             isAuthenticated: false,
             user: null,
             logout: jest.fn(),
@@ -36,7 +36,7 @@ describe('Common Components', () => {
         });
 
         it('shows user name and dashboard link when authenticated', () => {
-            (useAuth as jest.Mock).mockReturnValue({
+            (useAuthStore as unknown as jest.Mock).mockReturnValue({
                 isAuthenticated: true,
                 user: { first_name: 'John', role: 'USER' },
                 logout: jest.fn(),

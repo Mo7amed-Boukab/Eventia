@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { eventService } from "@/lib/services/eventService";
 import { Event } from "@/lib/types";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/authStore";
 import { reservationService } from "@/lib/services/reservationService";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 
@@ -35,7 +35,7 @@ export default function PublicEventDetails() {
     const [scrolled, setScrolled] = useState(false);
 
     // Auth and Reservation State
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user } = useAuthStore();
     const [bookingLoading, setBookingLoading] = useState(false);
     const [bookingSuccess, setBookingSuccess] = useState(false);
     const [bookingError, setBookingError] = useState("");

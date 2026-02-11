@@ -1,4 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './services/authService';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -13,7 +14,7 @@ const apiClient = axios.create({
 // Request interceptor to add access token to every request
 apiClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        const accessToken = localStorage.getItem('access_token');
+        const accessToken = getAccessToken();
 
         if (accessToken && config.headers) {
             config.headers.Authorization = `Bearer ${accessToken}`;
@@ -26,6 +27,16 @@ apiClient.interceptors.request.use(
     }
 );
 
+// Helper to fully clear auth state (localStorage + Zustand persist)
+const clearAllAuthState = () => {
+    clearTokens();
+    localStorage.removeItem('auth-storage');
+
+    import('@/stores/authStore').then(({ useAuthStore }) => {
+        useAuthStore.getState().setUser(null);
+    });
+};
+
 // Response interceptor to handle token refresh
 apiClient.interceptors.response.use(
     (response) => response,
@@ -37,12 +48,11 @@ apiClient.interceptors.response.use(
             originalRequest._retry = true;
 
             try {
-                const refreshToken = localStorage.getItem('refresh_token');
+                const refreshToken = getRefreshToken();
 
                 if (!refreshToken) {
-                    // No refresh token available, redirect to login
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('refresh_token');
+                    // No refresh token available, clear everything and redirect
+                    clearAllAuthState();
                     window.location.href = '/login';
                     return Promise.reject(error);
                 }
@@ -55,8 +65,7 @@ apiClient.interceptors.response.use(
                 const { access_token, refresh_token: new_refresh_token } = response.data;
 
                 // Store new tokens
-                localStorage.setItem('access_token', access_token);
-                localStorage.setItem('refresh_token', new_refresh_token);
+                setTokens(access_token, new_refresh_token);
 
                 // Retry the original request with new token
                 if (originalRequest.headers) {
@@ -65,9 +74,8 @@ apiClient.interceptors.response.use(
 
                 return apiClient(originalRequest);
             } catch (refreshError) {
-                // Refresh failed, clear tokens and redirect to login
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
+                // Refresh failed, clear everything and redirect
+                clearAllAuthState();
                 window.location.href = '/login';
                 return Promise.reject(refreshError);
             }

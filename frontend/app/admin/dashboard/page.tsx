@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   DollarSign,
   Calendar,
@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import StatCard from "@/components/admin/StatCard";
 import DashboardCharts from "@/components/admin/DashboardCharts";
-import { statsService, AdminStats } from "@/lib/services/statsService";
+import { useStatsStore } from "@/stores/statsStore";
 
 // Mock data for charts
 const mockChartData = [
@@ -25,28 +25,13 @@ const mockChartData = [
 ];
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { stats, isLoading, error, fetchStats } = useStatsStore();
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [fetchStats]);
 
-  const fetchStats = async () => {
-    try {
-      setLoading(true);
-      const data = await statsService.getAdminStats();
-      setStats(data);
-    } catch (err) {
-      console.error("Failed to fetch dashboard stats:", err);
-      setError("Impossible de charger les statistiques.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Loader2 className="w-8 h-8 text-[#C5A059] animate-spin mb-3" />

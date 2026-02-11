@@ -1,48 +1,32 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Calendar, MapPin, ChevronRight, Loader2 } from "lucide-react";
-import { eventService } from "@/lib/services/eventService";
-import { Event, EventStatus } from "@/lib/types";
+import { Event } from "@/lib/types";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/authStore";
+import { useEventStore } from "@/stores/eventStore";
 
 const EventsSection: React.FC = () => {
-  const { user } = useAuth();
-  const [events, setEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { user } = useAuthStore();
+  const { events: allEvents, isLoading, error, fetchPublishedEvents } = useEventStore();
 
   const STATIC_IMAGE =
     "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=2069&auto=format&fit=crop";
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    fetchPublishedEvents();
+  }, [fetchPublishedEvents]);
 
-  const fetchEvents = async () => {
-    try {
-      setIsLoading(true);
-      // Fetch only published events for the public site
-      const allEvents = await eventService.getAll();
-      const publishedEvents = allEvents.filter(
-        (e: Event) => e.status === EventStatus.PUBLISHED,
-      );
-
-      // Sort by date (closest first)
-      const sorted = publishedEvents.sort(
+  // Sort by date (closest first) and take first 6
+  const events = useMemo(() => {
+    return [...allEvents]
+      .sort(
         (a: Event, b: Event) =>
           new Date(a.date).getTime() - new Date(b.date).getTime(),
-      );
-
-      setEvents(sorted.slice(0, 6)); // Show first 6 upcoming published events
-    } catch (err) {
-      console.error("Error fetching public events:", err);
-      setError("Impossible de charger les événements.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      )
+      .slice(0, 6);
+  }, [allEvents]);
 
   const formatDate = (dateStr: string) => {
     try {

@@ -1,8 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/context/AuthContext";
-import { ToastProvider } from "@/context/ToastContext";
 import ConditionalLayout from "@/components/ConditionalLayout";
+import AuthInitializer from "@/components/AuthInitializer";
+import ToastContainer from "@/components/ui/ToastContainer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,13 +29,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <ToastProvider>
-            <ConditionalLayout>{children}</ConditionalLayout>
-          </ToastProvider>
-        </AuthProvider>
+        <AuthInitializer />
+        <ToastContainer />
+        <ConditionalLayout>{children}</ConditionalLayout>
       </body>
     </html>
   );
 }
-

@@ -12,14 +12,14 @@ import {
 import { userService } from "@/lib/services/userService";
 import { User } from "@/lib/types";
 import ConfirmModal from "@/components/ui/ConfirmModal";
-import { useToast } from "@/context/ToastContext";
+import { useToastStore } from "@/stores/toastStore";
 
 const UsersList: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
-    const { toast } = useToast();
+    const toast = useToastStore();
 
     // Modal actions
     const [modal, setModal] = useState<{

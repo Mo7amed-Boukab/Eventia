@@ -6,15 +6,15 @@ import {
     ChevronRight, Ticket, LogOut, Eye, EyeOff, Pencil
 } from "lucide-react";
 import { userService } from "@/lib/services/userService";
-import { useToast } from "@/context/ToastContext";
-import { useAuth } from "@/context/AuthContext";
+import { useToastStore } from "@/stores/toastStore";
+import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function ProfileForm() {
-    const { user: authUser, setUser: setAuthUser, logout, isLoading: authLoading } = useAuth();
+    const { user: authUser, setUser: setAuthUser, logout, isLoading: authLoading } = useAuthStore();
     const router = useRouter();
-    const { toast } = useToast();
+    const toast = useToastStore();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [activeTab, setActiveTab] = useState<'general' | 'security'>('general');

@@ -1,13 +1,13 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import MyReservationsPage from '@/app/my-reservations/page';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/context/ToastContext';
+import { useAuthStore } from '@/stores/authStore';
+import { useToastStore } from '@/stores/toastStore';
 import { reservationService } from '@/lib/services/reservationService';
 import { useRouter } from 'next/navigation';
 
 // Mock dependencies
-jest.mock('@/context/AuthContext');
-jest.mock('@/context/ToastContext');
+jest.mock('@/stores/authStore');
+jest.mock('@/stores/toastStore');
 jest.mock('@/lib/services/reservationService');
 jest.mock('next/navigation');
 
@@ -31,11 +31,14 @@ describe('Cancellation Flow', () => {
     const mockToast = {
         success: jest.fn(),
         error: jest.fn(),
+        info: jest.fn(),
+        toasts: [],
+        removeToast: jest.fn(),
     };
 
     beforeEach(() => {
-        (useAuth as jest.Mock).mockReturnValue({ isAuthenticated: true, isLoading: false, user: { id: 'user1' } });
-        (useToast as jest.Mock).mockReturnValue({ toast: mockToast });
+        (useAuthStore as unknown as jest.Mock).mockReturnValue({ isAuthenticated: true, isLoading: false, user: { id: 'user1' } });
+        (useToastStore as unknown as jest.Mock).mockReturnValue(mockToast);
         (useRouter as jest.Mock).mockReturnValue({ push: jest.fn() });
         (reservationService.getMyReservations as jest.Mock).mockResolvedValue(mockReservations);
     });

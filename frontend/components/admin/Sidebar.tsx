@@ -11,11 +11,11 @@ import {
     Settings,
     LogOut,
 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/authStore";
 
 const Sidebar: React.FC = () => {
     const pathname = usePathname();
-    const { user, logout } = useAuth();
+    const { user, logout } = useAuthStore();
     const sidebarRef = useRef<HTMLDivElement>(null);
 
     const isActive = (path: string) => {

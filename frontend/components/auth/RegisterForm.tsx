@@ -4,13 +4,13 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/context/ToastContext";
+import { useAuthStore } from "@/stores/authStore";
+import { useToastStore } from "@/stores/toastStore";
 
 const RegisterForm: React.FC = () => {
     const router = useRouter();
-    const { register, user, isAuthenticated, isLoading: authLoading } = useAuth();
-    const { toast } = useToast();
+    const { register, user, isAuthenticated, isLoading: authLoading } = useAuthStore();
+    const toast = useToastStore();
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
