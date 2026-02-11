@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User } from '@/lib/types';
 import authService from '@/lib/services/authService';
-import { userService } from '@/lib/services/userService';
 
 interface AuthState {
     user: User | null;
@@ -32,7 +31,7 @@ export const useAuthStore = create<AuthState>()(
                 try {
                     set({ error: null });
                     const response = await authService.login({ email, password });
-                    authService.setTokens(response.access_token, response.refresh_token);
+                    // Tokens are set as httpOnly cookies by the server
                     set({ user: response.user, isAuthenticated: true, error: null });
                 } catch (err: any) {
                     const message = err.response?.data?.message || 'Échec de la connexion.';
@@ -50,7 +49,7 @@ export const useAuthStore = create<AuthState>()(
                         email,
                         password,
                     });
-                    authService.setTokens(response.access_token, response.refresh_token);
+                    // Tokens are set as httpOnly cookies by the server
                     set({ user: response.user, isAuthenticated: true, error: null });
                 } catch (err: any) {
                     const message = err.response?.data?.message || 'Échec de l\'inscription.';
@@ -61,33 +60,21 @@ export const useAuthStore = create<AuthState>()(
 
             logout: async () => {
                 try {
+                    // Server clears the httpOnly cookies
                     await authService.logout();
                 } catch (err) {
-                    // authService.logout() already clears tokens in its own finally block
                     console.error('Logout API call failed:', err);
                 } finally {
-                    // Always clear everything regardless of API success
-                    authService.clearTokens();
-                    localStorage.removeItem('auth-storage');
                     set({ user: null, isAuthenticated: false, error: null });
                 }
             },
 
             checkAuth: async () => {
-                const accessToken = authService.getAccessToken();
-
-                if (!accessToken) {
-                    set({ isLoading: false, isAuthenticated: false, user: null });
-                    return;
-                }
-
                 try {
-                    const userData = await userService.getMe();
+                    // Cookie is sent automatically — server validates
+                    const userData = await authService.getProfile();
                     set({ user: userData, isAuthenticated: true, isLoading: false });
-                } catch (error) {
-                    console.error('Failed to fetch user profile:', error);
-                    authService.clearTokens();
-                    localStorage.removeItem('auth-storage');
+                } catch {
                     set({ user: null, isAuthenticated: false, isLoading: false });
                 }
             },
@@ -101,8 +88,6 @@ export const useAuthStore = create<AuthState>()(
             },
 
             resetStore: () => {
-                authService.clearTokens();
-                localStorage.removeItem('auth-storage');
                 set({ user: null, isAuthenticated: false, isLoading: false, error: null });
             },
         }),

@@ -1,88 +1,48 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './services/authService';
+import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
-// Create axios instance with base configuration
+// Create axios instance — cookies are sent automatically via withCredentials
 const apiClient = axios.create({
     baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json',
     },
+    withCredentials: true,
 });
 
-// Request interceptor to add access token to every request
-apiClient.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
-        const accessToken = getAccessToken();
-
-        if (accessToken && config.headers) {
-            config.headers.Authorization = `Bearer ${accessToken}`;
-        }
-
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
-
-// Helper to fully clear auth state (localStorage + Zustand persist)
-const clearAllAuthState = () => {
-    clearTokens();
-    localStorage.removeItem('auth-storage');
-
-    import('@/stores/authStore').then(({ useAuthStore }) => {
-        useAuthStore.getState().setUser(null);
-    });
-};
-
-// Response interceptor to handle token refresh
+// Response interceptor — automatic token refresh via cookie
 apiClient.interceptors.response.use(
     (response) => response,
-    async (error: AxiosError) => {
-        const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    async (error) => {
+        const originalRequest = error.config as any;
 
-        // If error is 401 and we haven't tried to refresh yet
+        // If 401 and we haven't retried yet, attempt silent refresh
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
 
             try {
-                const refreshToken = getRefreshToken();
+                // The refresh_token cookie is sent automatically
+                await axios.post(
+                    `${API_URL}/auth/refresh`,
+                    {},
+                    { withCredentials: true },
+                );
 
-                if (!refreshToken) {
-                    // No refresh token available, clear everything and redirect
-                    clearAllAuthState();
-                    window.location.href = '/login';
-                    return Promise.reject(error);
-                }
-
-                // Try to refresh the token
-                const response = await axios.post(`${API_URL}/auth/refresh`, {
-                    refresh_token: refreshToken,
-                });
-
-                const { access_token, refresh_token: new_refresh_token } = response.data;
-
-                // Store new tokens
-                setTokens(access_token, new_refresh_token);
-
-                // Retry the original request with new token
-                if (originalRequest.headers) {
-                    originalRequest.headers.Authorization = `Bearer ${access_token}`;
-                }
-
+                // Retry the original request — new access_token cookie is set
                 return apiClient(originalRequest);
-            } catch (refreshError) {
-                // Refresh failed, clear everything and redirect
-                clearAllAuthState();
+            } catch {
+                // Refresh failed — reset Zustand state and redirect
+                import('@/stores/authStore').then(({ useAuthStore }) => {
+                    useAuthStore.getState().resetStore();
+                });
                 window.location.href = '/login';
-                return Promise.reject(refreshError);
+                return Promise.reject(error);
             }
         }
 
         return Promise.reject(error);
-    }
+    },
 );
 
 export default apiClient;

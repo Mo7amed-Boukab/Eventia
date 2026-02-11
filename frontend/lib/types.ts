@@ -9,8 +9,6 @@ export interface User {
 }
 
 export interface AuthResponse {
-  access_token: string;
-  refresh_token: string;
   user: User;
 }
 
@@ -26,10 +24,7 @@ export interface RegisterData {
   password: string;
 }
 
-export interface RefreshTokenResponse {
-  access_token: string;
-  refresh_token: string;
-}
+
 
 export enum EventCategory {
   FORMATION = "Formation",

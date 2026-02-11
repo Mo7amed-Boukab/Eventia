@@ -1,9 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Cookie parser middleware
+  app.use(cookieParser());
 
   // Enable global validation
   app.useGlobalPipes(
@@ -14,9 +18,9 @@ async function bootstrap() {
     }),
   );
 
-  // Enable CORS
+  // Enable CORS with explicit origin for cookie support
   app.enableCors({
-    origin: true,
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

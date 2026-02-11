@@ -1,26 +1,8 @@
 import apiClient from '../api-client';
-import { AuthResponse, LoginData, RegisterData, User, RefreshTokenResponse } from '../types';
+import { AuthResponse, LoginData, RegisterData, User } from '../types';
 
-// Token management utilities
-export const setTokens = (accessToken: string, refreshToken: string): void => {
-    localStorage.setItem('access_token', accessToken);
-    localStorage.setItem('refresh_token', refreshToken);
-};
+// Authentication API calls — tokens are managed via httpOnly cookies
 
-export const getAccessToken = (): string | null => {
-    return localStorage.getItem('access_token');
-};
-
-export const getRefreshToken = (): string | null => {
-    return localStorage.getItem('refresh_token');
-};
-
-export const clearTokens = (): void => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-};
-
-// Authentication API calls
 export const register = async (data: RegisterData): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>('/auth/register', data);
     return response.data;
@@ -32,18 +14,11 @@ export const login = async (data: LoginData): Promise<AuthResponse> => {
 };
 
 export const logout = async (): Promise<void> => {
-    try {
-        await apiClient.post('/auth/logout');
-    } finally {
-        clearTokens();
-    }
+    await apiClient.post('/auth/logout');
 };
 
-export const refreshTokens = async (refreshToken: string): Promise<RefreshTokenResponse> => {
-    const response = await apiClient.post<RefreshTokenResponse>('/auth/refresh', {
-        refresh_token: refreshToken,
-    });
-    return response.data;
+export const refreshTokens = async (): Promise<void> => {
+    await apiClient.post('/auth/refresh');
 };
 
 export const getProfile = async (): Promise<User> => {
@@ -57,10 +32,6 @@ const authService = {
     logout,
     refreshTokens,
     getProfile,
-    setTokens,
-    getAccessToken,
-    getRefreshToken,
-    clearTokens,
 };
 
 export default authService;
