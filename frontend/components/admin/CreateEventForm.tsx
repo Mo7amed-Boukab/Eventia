@@ -15,7 +15,8 @@ import {
     Send,
     AlertCircle,
     CheckCircle2,
-    ArrowLeft
+    ArrowLeft,
+    Users
 } from "lucide-react";
 import { eventService } from "@/lib/services/eventService";
 
@@ -95,7 +96,8 @@ export default function CreateEventForm() {
         location: "",
         price: "",
         status: "DRAFT",
-        imagePreview: ""
+        imagePreview: "",
+        maxParticipants: "",
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -133,6 +135,7 @@ export default function CreateEventForm() {
         if (!formData.time) newErrors.time = "L'heure est obligatoire";
         if (!formData.location.trim()) newErrors.location = "Le lieu est obligatoire";
         if (!formData.price) newErrors.price = "Le prix est obligatoire";
+        if (!formData.maxParticipants) newErrors.maxParticipants = "Le max des Participants est obligatoire";
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -162,6 +165,7 @@ export default function CreateEventForm() {
                 location: formData.location,
                 price: Number(formData.price),
                 status: status as 'DRAFT' | 'PUBLISHED' | 'CANCELED',
+                maxParticipants: Number(formData.maxParticipants)
                 // image: formData.imagePreview // Image handled later 
             };
 
@@ -353,7 +357,7 @@ export default function CreateEventForm() {
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
                         <DollarSign size={14} className="text-[#C5A059]" /> Catégorie & Prix
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <CustomSelect
                             label="Catégorie"
                             options={["Formation", "Workshop", "Conférence", "Networking"]}
@@ -387,6 +391,23 @@ export default function CreateEventForm() {
                                 />
                                 {errors.price && <p className="text-[10px] text-red-500 mt-1 font-medium">{errors.price}</p>}
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="w-full">
+                        <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Nombre maximum de places</label>
+                        <div className="relative">
+                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
+                            <input
+                                type="number"
+                                name="maxParticipants"
+                                required
+                                placeholder="0"
+                                className={`w-full pl-10 pr-4 py-2.5 text-sm text-gray-700 bg-white border ${errors.maxParticipants ? 'border-red-500 bg-red-50/10' : 'border-gray-200'} rounded focus:outline-none focus:border-[#C5A059] transition-colors`}
+                                value={formData.maxParticipants}
+                                onChange={handleInputChange}
+                            />
+                            {errors.maxParticipants && <p className="text-[10px] text-red-500 mt-1 font-medium">{errors.maxParticipants}</p>}
                         </div>
                     </div>
                 </div>

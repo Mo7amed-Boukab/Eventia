@@ -10,6 +10,7 @@ export interface CreateEventData {
     price: number;
     status: 'DRAFT' | 'PUBLISHED' | 'CANCELED';
     image?: string;
+    maxParticipants?: number;
 }
 
 export const eventService = {

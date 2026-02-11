@@ -18,6 +18,7 @@ import {
   ArrowLeft,
   XCircle,
   Loader2,
+  Users,
 } from "lucide-react";
 import { eventService } from "@/lib/services/eventService";
 import { EventStatus, EventCategory } from "@/lib/types";
@@ -126,6 +127,7 @@ export default function EditEventForm() {
     location: "",
     price: "",
     status: "" as EventStatus,
+    maxParticipants: "",
     imagePreview:
       "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=2069&auto=format&fit=crop",
   });
@@ -157,6 +159,7 @@ export default function EditEventForm() {
         location: event.location || "",
         price: event.price?.toString() || "0",
         status: event.status || "DRAFT",
+        maxParticipants: event.maxParticipants?.toString() || "0",
         imagePreview:
           event.image ||
           "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=2069&auto=format&fit=crop",
@@ -195,6 +198,8 @@ export default function EditEventForm() {
     if (!formData.location.trim())
       newErrors.location = "Le lieu est obligatoire";
     if (!formData.price) newErrors.price = "Le prix est obligatoire";
+    if (!formData.maxParticipants)
+      newErrors.maxParticipants = "Le nombre de places est obligatoire";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -232,6 +237,7 @@ export default function EditEventForm() {
         location: formData.location,
         price: Number(formData.price),
         status: newStatus,
+        maxParticipants: Number(formData.maxParticipants),
       };
 
       await eventService.update(id as string, updateData);
@@ -244,7 +250,7 @@ export default function EditEventForm() {
       console.error("Error updating event:", err);
       setGeneralError(
         err.response?.data?.message ||
-          "Une erreur est survenue lors de la mise à jour.",
+        "Une erreur est survenue lors de la mise à jour.",
       );
     } finally {
       setIsUpdating(false);
@@ -300,13 +306,12 @@ export default function EditEventForm() {
           <p className="text-gray-500 text-sm font-light">
             Statut actuel:
             <span
-              className={`ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                formData.status === "PUBLISHED"
+              className={`ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase ${formData.status === "PUBLISHED"
                   ? "bg-green-50 text-green-600"
                   : formData.status === "DRAFT"
                     ? "bg-blue-50 text-blue-600"
                     : "bg-red-50 text-red-600"
-              }`}
+                }`}
             >
               {formData.status}
             </span>
@@ -525,7 +530,7 @@ export default function EditEventForm() {
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
             <DollarSign size={14} className="text-[#C5A059]" /> Catégorie & Prix
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <CustomSelect
               label="Catégorie"
               options={["Formation", "Workshop", "Conférence", "Networking"]}
@@ -560,6 +565,31 @@ export default function EditEventForm() {
                   </p>
                 )}
               </div>
+            </div>
+          </div>
+
+          <div className="w-full">
+            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+              Nombre maximum de places
+            </label>
+            <div className="relative">
+              <Users
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300"
+                size={16}
+              />
+              <input
+                type="number"
+                name="maxParticipants"
+                required
+                className={`w-full pl-10 pr-4 py-2.5 text-sm text-gray-700 bg-white border ${errors.maxParticipants ? "border-red-500 bg-red-50/10" : "border-gray-200"} rounded focus:outline-none focus:border-[#C5A059] transition-colors`}
+                value={formData.maxParticipants}
+                onChange={handleInputChange}
+              />
+              {errors.maxParticipants && (
+                <p className="text-[10px] text-red-500 mt-1 font-medium">
+                  {errors.maxParticipants}
+                </p>
+              )}
             </div>
           </div>
         </div>
