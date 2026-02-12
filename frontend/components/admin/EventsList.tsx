@@ -4,8 +4,6 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
   Plus,
-  Search,
-  ChevronDown,
   Edit,
   Trash2,
   Eye,
@@ -13,87 +11,13 @@ import {
   MapPin,
   Users,
   Loader2,
-  AlertCircle,
 } from "lucide-react";
 import { eventService } from "@/lib/services/eventService";
 import { Event } from "@/lib/types";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 
-// Custom Select Component
-interface CustomSelectProps {
-  options: string[];
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-}
-
-const CustomSelect: React.FC<CustomSelectProps> = ({
-  options,
-  value,
-  onChange,
-  placeholder,
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  return (
-    <div className="relative" ref={containerRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between gap-3 px-4 py-2.5 bg-white border border-gray-200 rounded text-sm font-medium text-gray-700 min-w-40 hover:border-[#C5A059] transition-all"
-      >
-        <span className={value ? "text-gray-900" : "text-gray-500"}>
-          {value || placeholder}
-        </span>
-        <ChevronDown
-          size={16}
-          className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
-      </button>
-      {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-100 rounded shadow-xl z-50 py-1 animate-in fade-in slide-in-from-top-2 duration-200">
-          <button
-            type="button"
-            onClick={() => {
-              onChange("");
-              setIsOpen(false);
-            }}
-            className="w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-[#C5A059] transition-colors italic border-b border-gray-50 mb-1"
-          >
-            Toutes les options
-          </button>
-          {options.map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => {
-                onChange(option);
-                setIsOpen(false);
-              }}
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#C5A059] transition-colors"
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+import CustomSelect from "@/components/ui/CustomSelect";
+import SearchInput from "@/components/ui/SearchInput";
 
 const EventsList: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -193,17 +117,11 @@ const EventsList: React.FC = () => {
       {/* Filters & Search */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-8 mt-6">
         <div className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto">
-          <div className="relative w-full md:w-80">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Rechercher un événement..."
-              className="w-full pl-10 pr-4 py-2.5 text-sm text-gray-700 bg-white border border-gray-200 rounded focus:outline-none focus:border-[#C5A059] transition-colors"
+          <div className="w-full md:w-80">
+            <SearchInput
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={setSearchTerm}
+              placeholder="Rechercher un événement..."
             />
           </div>
 
@@ -314,13 +232,12 @@ const EventsList: React.FC = () => {
                   </td>
                   <td className="px-6 py-4">
                     <span
-                      className={`px-2.5 py-1 text-[10px] font-bold uppercase ${
-                        event.status === "PUBLISHED"
-                          ? "text-green-600 bg-green-50"
-                          : event.status === "DRAFT"
-                            ? "text-blue-600 bg-blue-50"
-                            : "text-red-600 bg-red-50"
-                      } rounded`}
+                      className={`px-2.5 py-1 text-[10px] font-bold uppercase ${event.status === "PUBLISHED"
+                        ? "text-green-600 bg-green-50"
+                        : event.status === "DRAFT"
+                          ? "text-blue-600 bg-blue-50"
+                          : "text-red-600 bg-red-50"
+                        } rounded`}
                     >
                       {event.status}
                     </span>

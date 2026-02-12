@@ -180,7 +180,7 @@ export default function ProfileForm() {
                         {activeTab === 'security' && <ChevronRight size={14} className="text-[#C5A059]" />}
                     </button>
 
-                    <div className="h-px bg-gray-100 my-1 mx-4"></div>
+
 
                     <Link
                         href="/my-reservations"

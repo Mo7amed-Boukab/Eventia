@@ -29,10 +29,10 @@ const Header: React.FC = () => {
 
   const navLinks = [
     { name: "Accueil", path: "/" },
-    { name: "À propos", path: "#about" },
-    { name: "Nos événements", path: "#events" },
-    { name: "Avis", path: "#testimonials" },
-    { name: "Contact", path: "#contact" },
+    { name: "À propos", path: "/#about" },
+    { name: "Nos événements", path: "/events" },
+    { name: "Avis", path: "/#testimonials" },
+    { name: "Contact", path: "/#contact" },
   ];
 
   const isHome = pathname === "/";
@@ -62,7 +62,7 @@ const Header: React.FC = () => {
           {/* Desktop Links */}
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.name}
                 href={link.path}
                 className={`text-sm font-medium transition-colors ${isScrolled || !isHome
@@ -71,7 +71,7 @@ const Header: React.FC = () => {
                   }`}
               >
                 {link.name}
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -151,14 +151,14 @@ const Header: React.FC = () => {
         <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-xl">
           <div className="px-4 py-6 space-y-4">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.name}
                 href={link.path}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block text-lg font-medium text-gray-900 hover:text-[#C5A059]"
               >
                 {link.name}
-              </a>
+              </Link>
             ))}
             <div className="pt-4 space-y-3 border-t border-gray-200">
               {isAuthenticated ? (

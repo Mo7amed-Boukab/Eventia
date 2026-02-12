@@ -1,47 +1,28 @@
 "use client";
 
 import React, { useEffect, useMemo } from "react";
-import { Calendar, MapPin, ChevronRight, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Event } from "@/lib/types";
 import Link from "next/link";
-import { useAuthStore } from "@/stores/authStore";
 import { useEventStore } from "@/stores/eventStore";
+import EventCard from "@/components/ui/EventCard";
 
 const EventsSection: React.FC = () => {
-  const { user } = useAuthStore();
   const { events: allEvents, isLoading, error, fetchPublishedEvents } = useEventStore();
-
-  const STATIC_IMAGE =
-    "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=2069&auto=format&fit=crop";
 
   useEffect(() => {
     fetchPublishedEvents();
   }, [fetchPublishedEvents]);
 
-  // Sort by date (closest first) and take first 6
+  // Sort by date (closest first) and take first 3
   const events = useMemo(() => {
     return [...allEvents]
       .sort(
         (a: Event, b: Event) =>
           new Date(a.date).getTime() - new Date(b.date).getTime(),
       )
-      .slice(0, 6);
+      .slice(0, 3);
   }, [allEvents]);
-
-  const formatDate = (dateStr: string) => {
-    try {
-      const date = new Date(dateStr);
-      return new Intl.DateTimeFormat("fr-FR", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
-        .format(date)
-        .toUpperCase();
-    } catch (e) {
-      return dateStr;
-    }
-  };
 
   return (
     <section id="events" className="py-24 bg-[#F8F8F8]">
@@ -79,67 +60,18 @@ const EventsSection: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {events.map((event) => (
-              <div
-                key={event._id}
-                className="group bg-white rounded-md border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 flex flex-col h-full"
-              >
-                <div className="relative h-64 overflow-hidden shrink-0">
-                  <Link href={`/events/${event._id}`}>
-                    <img
-                      src={event.image || STATIC_IMAGE}
-                      alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1.5s] cursor-pointer"
-                    />
-                    <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  </Link>
-                  <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded-sm text-[10px] font-bold text-[#1A1A1A] uppercase tracking-[0.2em] shadow-lg pointer-events-none">
-                    {event.category}
-                  </div>
-                </div>
-                <div className="p-8 flex flex-col grow">
-                  <div className="flex items-center gap-2 text-xs text-[#C5A059] font-bold mb-4 uppercase tracking-wider">
-                    <Calendar size={14} /> {formatDate(event.date)}
-                  </div>
-                  <Link href={`/events/${event._id}`} className="block mb-4">
-                    <h3
-                      className="text-xl font-bold text-gray-900 group-hover:text-[#C5A059] transition-colors leading-tight cursor-pointer"
-                      style={{ fontFamily: "serif" }}
-                    >
-                      {event.title}
-                    </h3>
-                  </Link>
-                  <div className="flex items-center justify-between mt-auto pt-6 border-t border-gray-100 min-h-16">
-                    <span className="text-[10px] text-gray-400 font-bold flex items-start gap-1 uppercase tracking-wider max-w-[65%]">
-                      <MapPin
-                        size={14}
-                        className="text-[#C5A059] shrink-0 mt-px"
-                      />
-                      <span className="line-clamp-2 leading-tight">
-                        {event.location}
-                      </span>
-                    </span>
-                    <Link
-                      href={`/events/${event._id}`}
-                      className="text-[#1A1A1A] font-bold text-[10px] hover:text-[#C5A059] transition-colors flex items-center gap-1 uppercase tracking-[0.2em] group/btn shrink-0"
-                    >
-                      {user?.role === 'ADMIN' ? "Gérer" : "Réserver"}{" "}
-                      <ChevronRight
-                        size={14}
-                        className="group-hover/btn:translate-x-1 transition-transform"
-                      />
-                    </Link>
-                  </div>
-                </div>
-              </div>
+              <EventCard key={event._id} event={event} />
             ))}
           </div>
         )}
 
-        {events.length > 0 && (
+        {allEvents.length > 0 && (
           <div className="text-center mt-16">
-            <button className="bg-[#C5A059] text-white px-12 py-4 rounded-sm font-bold tracking-[0.2em] hover:bg-[#b89658] transition-all shadow-xl uppercase text-xs">
-              Consulter l'agenda complet
-            </button>
+            <Link href="/events">
+              <button className="bg-[#C5A059] text-white px-12 py-4 rounded-sm font-bold tracking-[0.2em] hover:bg-[#B08D45] transition-all shadow-xl uppercase text-xs">
+                Consulter l'agenda complet
+              </button>
+            </Link>
           </div>
         )}
       </div>

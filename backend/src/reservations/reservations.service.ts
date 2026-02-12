@@ -25,6 +25,11 @@ export class ReservationsService {
             throw new NotFoundException('Événement non trouvé');
         }
 
+        // Vérifier la capacité maximale
+        if (event.maxParticipants && event.participants >= event.maxParticipants) {
+            throw new BadRequestException('Les places de cet événement sont toutes prises');
+        }
+
         // Check if user already booked this event
         const existingReservation = await this.reservationModel.findOne({
             userId: userId as any,

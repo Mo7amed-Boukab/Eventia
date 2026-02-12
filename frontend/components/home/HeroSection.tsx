@@ -1,5 +1,6 @@
 import React from "react";
 import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 const HeroSection: React.FC = () => {
   return (
@@ -35,12 +36,16 @@ const HeroSection: React.FC = () => {
             stratégique pour votre entreprise.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="bg-[#C5A059] text-white px-10 py-4 rounded-sm font-bold tracking-wider hover:bg-[#B08D45] transition-all transform hover:scale-105 shadow-2xl flex items-center justify-center gap-2 uppercase text-xs">
-              PARCOURIR LES ÉVÉNEMENTS <ChevronRight size={18} />
-            </button>
-            <button className="bg-transparent border border-white/40 backdrop-blur-md text-white px-10 py-4 rounded-sm font-bold tracking-wider hover:bg-white/10 transition-all text-xs uppercase">
-              SOLUTIONS SUR MESURE
-            </button>
+            <Link href="/events">
+              <button className="bg-[#C5A059] text-white px-10 py-4 rounded-sm font-bold tracking-wider hover:bg-[#B08D45] transition-all transform hover:scale-105 shadow-2xl flex items-center justify-center gap-2 uppercase text-xs w-full sm:w-auto">
+                PARCOURIR LES ÉVÉNEMENTS <ChevronRight size={18} />
+              </button>
+            </Link>
+            <Link href="/#contact">
+              <button className="bg-transparent border border-white/40 backdrop-blur-md text-white px-10 py-4 rounded-sm font-bold tracking-wider hover:bg-white/10 transition-all text-xs uppercase w-full sm:w-auto">
+                SOLUTIONS SUR MESURE
+              </button>
+            </Link>
           </div>
         </div>
       </div>

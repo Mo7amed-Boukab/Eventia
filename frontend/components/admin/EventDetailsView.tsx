@@ -252,7 +252,7 @@ export default function EventDetailsView() {
                             {event.status === EventStatus.PUBLISHED ? <CheckCircle2 size={16} className="text-green-500" /> :
                                 event.status === EventStatus.DRAFT ? <Info size={16} className="text-blue-500" /> :
                                     <XCircle size={16} className="text-red-500" />}
-                            <p className="text-xs font-bold uppercase tracking-widest">
+                            <p className="text-xs font-bold uppercase tracking-widest text-gray-500">
                                 {event.status === EventStatus.PUBLISHED ? "Public" :
                                     event.status === EventStatus.DRAFT ? "Privé (Brouillon)" :
                                         "Annulé"}
