@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande de réservation reçue - Eventia</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #ffffff;
+            margin: 0;
+            padding: 0;
+            color: #1A1A1A;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            border: 1px solid #f0f0f0;
+        }
+
+        .header {
+            background-color: #1A1A1A;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: #FFFFFF;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .logo-dot {
+            color: #C5A059;
+        }
+
+        .content {
+            padding: 40px 50px;
+            background-color: #ffffff;
+        }
+
+        .greeting {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #1A1A1A;
+        }
+
+        .status-header {
+            margin-bottom: 35px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background-color: #f8f8f8;
+            border: 1px solid #C5A059;
+            color: #C5A059;
+            padding: 8px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 2px;
+        }
+
+        .info-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #444444;
+            margin-bottom: 30px;
+        }
+
+        .event-details {
+            border: 1px solid #f0f0f0;
+            border-radius: 4px;
+            padding: 30px;
+            margin: 40px 0;
+        }
+
+        .event-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #1A1A1A;
+        }
+
+        .detail-row {
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .detail-label {
+            color: #888888;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .detail-value {
+            font-weight: 500;
+            color: #1A1A1A;
+        }
+
+        .ticket-section {
+            background-color: #1A1A1A;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .ticket-label {
+            color: #C5A059;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .ticket-number {
+            color: #FFFFFF;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 5px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .footer {
+            padding: 40px;
+            text-align: center;
+            background-color: #fcfcfc;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .footer-text {
+            font-size: 11px;
+            color: #888888;
+            letter-spacing: 0.5px;
+            line-height: 1.8;
+        }
+
+        .divider {
+            width: 40px;
+            height: 2px;
+            background-color: #C5A059;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">EVENTIA<span class="logo-dot">.</span></div>
+        </div>
+
+        <div class="content">
+            <div class="status-header">
+                <span class="status-badge">Demande en cours</span>
+            </div>
+
+            <h1 class="greeting">Bonjour {{firstName}},</h1>
+
+            <p class="info-text">
+                Nous avons bien reçu votre demande de réservation pour l'événement suivant. Notre équipe examine
+                actuellement les détails et vous contactera très prochainement par email.
+            </p>
+
+            <div class="event-details">
+                <div class="event-title">{{eventTitle}}</div>
+                <div class="divider"></div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Date et Heure</span>
+                    <div class="detail-value">{{eventDate}} &middot; {{eventTime}}</div>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Lieu</span>
+                    <div class="detail-value">{{eventLocation}}</div>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Tarif</span>
+                    <div class="detail-value">{{eventPrice}}</div>
+                </div>
+            </div>
+
+            <div class="ticket-section">
+                <div class="ticket-label">Référence Dossier</div>
+                <div class="ticket-number">{{ticketNumber}}</div>
+            </div>
+
+            <p class="info-text" style="margin-top: 40px; font-size: 13px; color: #666;">
+                Veuillez conserver ce numéro de référence pour tout échange avec notre service client. Nous vous
+                remercions pour votre patience.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p class="footer-text">
+                &copy; 2026 EVENTIA &middot; Excellence et Partage<br>
+                Ceci est un message automatique, merci de ne pas y répondre directement.
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

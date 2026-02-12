@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { User, UserRole } from '../users/schemas/user.schema';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { MailService } from '../mail/mail.service';
 
 jest.mock('bcrypt');
 
@@ -69,6 +70,12 @@ describe('AuthService', () => {
                     provide: ConfigService,
                     useValue: {
                         get: jest.fn().mockReturnValue('secret'),
+                    },
+                },
+                {
+                    provide: MailService,
+                    useValue: {
+                        sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
                     },
                 },
             ],

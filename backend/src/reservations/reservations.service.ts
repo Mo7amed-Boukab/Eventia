@@ -6,6 +6,7 @@ import { CreateReservationDto } from './dto/create-reservation.dto';
 import { Event, EventDocument } from '../events/schemas/event.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { PdfService } from './pdf.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class ReservationsService {
@@ -14,6 +15,7 @@ export class ReservationsService {
         @InjectModel(Event.name) private eventModel: Model<EventDocument>,
         @InjectModel(User.name) private userModel: Model<UserDocument>,
         private readonly pdfService: PdfService,
+        private readonly mailService: MailService,
     ) { }
 
     async create(userId: string, createReservationDto: CreateReservationDto): Promise<Reservation> {
@@ -51,7 +53,33 @@ export class ReservationsService {
             status: ReservationStatus.PENDING
         });
 
-        return newReservation.save();
+        const savedReservation = await newReservation.save();
+
+        // Fetch user data for email
+        const user = await this.userModel.findById(userId);
+
+        // Send reservation pending email (fire-and-forget)
+        if (user) {
+            this.mailService.sendReservationPending(
+                {
+                    email: user.email,
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                },
+                {
+                    title: event.title,
+                    date: event.date,
+                    time: event.time,
+                    location: event.location,
+                    price: event.price,
+                },
+                ticketNumber
+            ).catch(err => {
+                // Already logged in MailService
+            });
+        }
+
+        return savedReservation;
     }
 
     async findAll(): Promise<Reservation[]> {
@@ -85,7 +113,44 @@ export class ReservationsService {
         await this.eventModel.findByIdAndUpdate(reservation.eventId, { $inc: { participants: 1 } });
 
         reservation.status = ReservationStatus.CONFIRMED;
-        return reservation.save();
+        const savedReservation = await reservation.save();
+
+        // Fetch user and event data for email
+        const user = await this.userModel.findById(reservation.userId);
+        const event = await this.eventModel.findById(reservation.eventId);
+
+        // Send reservation confirmed email with PDF ticket
+        if (user && event) {
+            try {
+                // Generate PDF ticket
+                const pdfBuffer = await this.pdfService.generateTicket(
+                    reservation,
+                    event,
+                    user
+                );
+
+                await this.mailService.sendReservationConfirmed(
+                    {
+                        email: user.email,
+                        first_name: user.first_name,
+                        last_name: user.last_name,
+                    },
+                    {
+                        title: event.title,
+                        date: event.date,
+                        time: event.time,
+                        location: event.location,
+                        price: event.price,
+                    },
+                    reservation.ticketNumber,
+                    pdfBuffer
+                );
+            } catch (err) {
+                // Already logged in services
+            }
+        }
+
+        return savedReservation;
     }
 
     async reject(id: string): Promise<Reservation> {
@@ -99,7 +164,33 @@ export class ReservationsService {
         }
 
         reservation.status = ReservationStatus.REJECTED;
-        return reservation.save();
+        const savedReservation = await reservation.save();
+
+        // Fetch user and event data for email
+        const user = await this.userModel.findById(reservation.userId);
+        const event = await this.eventModel.findById(reservation.eventId);
+
+        // Send reservation rejected email (fire-and-forget)
+        if (user && event) {
+            this.mailService.sendReservationRejected(
+                {
+                    email: user.email,
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                },
+                {
+                    title: event.title,
+                    date: event.date,
+                    time: event.time,
+                    location: event.location,
+                    price: event.price,
+                }
+            ).catch(err => {
+                // Already logged in MailService
+            });
+        }
+
+        return savedReservation;
     }
 
     async findOneByUserAndEvent(userId: string, eventId: string): Promise<Reservation | null> {
@@ -126,7 +217,33 @@ export class ReservationsService {
         }
 
         reservation.status = ReservationStatus.CANCELED;
-        return reservation.save();
+        const savedReservation = await reservation.save();
+
+        // Fetch user and event data for email
+        const user = await this.userModel.findById(reservation.userId);
+        const event = await this.eventModel.findById(reservation.eventId);
+
+        // Send reservation canceled email (fire-and-forget)
+        if (user && event) {
+            this.mailService.sendReservationCanceled(
+                {
+                    email: user.email,
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                },
+                {
+                    title: event.title,
+                    date: event.date,
+                    time: event.time,
+                    location: event.location,
+                    price: event.price,
+                }
+            ).catch(err => {
+                // Already logged in MailService
+            });
+        }
+
+        return savedReservation;
     }
 
     async cancel(id: string): Promise<Reservation> {
@@ -145,7 +262,33 @@ export class ReservationsService {
         }
 
         reservation.status = ReservationStatus.CANCELED;
-        return reservation.save();
+        const savedReservation = await reservation.save();
+
+        // Fetch user and event data for email
+        const user = await this.userModel.findById(reservation.userId);
+        const event = await this.eventModel.findById(reservation.eventId);
+
+        // Send reservation canceled email (fire-and-forget)
+        if (user && event) {
+            this.mailService.sendReservationCanceled(
+                {
+                    email: user.email,
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                },
+                {
+                    title: event.title,
+                    date: event.date,
+                    time: event.time,
+                    location: event.location,
+                    price: event.price,
+                }
+            ).catch(err => {
+                // Already logged in MailService
+            });
+        }
+
+        return savedReservation;
     }
 
     async getTicket(id: string, userId: string): Promise<Buffer> {

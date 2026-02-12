@@ -6,11 +6,13 @@ import { Event } from '../events/schemas/event.schema';
 import { User } from '../users/schemas/user.schema';
 import { PdfService } from './pdf.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { MailService } from '../mail/mail.service';
 
 describe('ReservationsService', () => {
     let service: ReservationsService;
     let mockResModel: any;
     let mockEventModel: any;
+    let mockUserModel: any;
 
     beforeEach(async () => {
         mockResModel = {
@@ -21,14 +23,27 @@ describe('ReservationsService', () => {
             findById: jest.fn(),
             findByIdAndUpdate: jest.fn(),
         };
+        mockUserModel = {
+            findById: jest.fn().mockReturnThis(),
+            exec: jest.fn(),
+        };
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 ReservationsService,
                 { provide: getModelToken(Reservation.name), useValue: mockResModel },
                 { provide: getModelToken(Event.name), useValue: mockEventModel },
-                { provide: getModelToken(User.name), useValue: {} },
+                { provide: getModelToken(User.name), useValue: mockUserModel },
                 { provide: PdfService, useValue: { generateTicket: jest.fn().mockResolvedValue(Buffer.from('pdf')) } },
+                {
+                    provide: MailService,
+                    useValue: {
+                        sendReservationPending: jest.fn().mockResolvedValue(undefined),
+                        sendReservationConfirmed: jest.fn().mockResolvedValue(undefined),
+                        sendReservationRejected: jest.fn().mockResolvedValue(undefined),
+                        sendReservationCanceled: jest.fn().mockResolvedValue(undefined),
+                    },
+                },
             ],
         }).compile();
 

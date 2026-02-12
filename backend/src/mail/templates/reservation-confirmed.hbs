@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation de réservation - Eventia</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #ffffff;
+            margin: 0;
+            padding: 0;
+            color: #1A1A1A;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            border: 1px solid #f0f0f0;
+        }
+
+        .header {
+            background-color: #1A1A1A;
+            padding: 50px 30px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: #FFFFFF;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .logo-dot {
+            color: #C5A059;
+        }
+
+        .content {
+            padding: 40px 50px;
+            background-color: #ffffff;
+        }
+
+        .greeting {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #1A1A1A;
+        }
+
+        .status-header {
+            margin-bottom: 35px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background-color: #f0fdf4;
+            border: 1px solid #10b981;
+            color: #047857;
+            padding: 8px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 2px;
+        }
+
+        .info-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #444444;
+            margin-bottom: 30px;
+        }
+
+        .event-details {
+            border: 1px solid #f0f0f0;
+            border-radius: 4px;
+            padding: 30px;
+            margin: 40px 0;
+        }
+
+        .event-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #1A1A1A;
+        }
+
+        .detail-row {
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .detail-label {
+            color: #888888;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .detail-value {
+            font-weight: 500;
+            color: #1A1A1A;
+        }
+
+        .ticket-box {
+            background-color: #fcfcfc;
+            border: 2px dashed #C5A059;
+            padding: 35px;
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .ticket-label {
+            color: #C5A059;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+
+        .ticket-number {
+            color: #1A1A1A;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 5px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .ticket-instruction {
+            font-size: 12px;
+            color: #888;
+            margin-top: 15px;
+        }
+
+        .cta-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: #C5A059;
+            color: #FFFFFF !important;
+            padding: 16px 36px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 2px;
+        }
+
+        .footer {
+            padding: 40px;
+            text-align: center;
+            background-color: #fcfcfc;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .footer-text {
+            font-size: 11px;
+            color: #888888;
+            letter-spacing: 0.5px;
+            line-height: 1.8;
+        }
+
+        .divider {
+            width: 40px;
+            height: 2px;
+            background-color: #10b981;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">EVENTIA<span class="logo-dot">.</span></div>
+        </div>
+
+        <div class="content">
+            <div class="status-header">
+                <span class="status-badge">Réservation Confirmée</span>
+            </div>
+
+            <h1 class="greeting">Félicitations {{firstName}},</h1>
+
+            <p class="info-text">
+                Nous avons le plaisir de vous confirmer votre participation à l'événement suivant. Votre place est
+                désormais officiellement réservée.
+            </p>
+
+            <div class="event-details">
+                <div class="event-title">{{eventTitle}}</div>
+                <div class="divider"></div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Date et Heure</span>
+                    <div class="detail-value">{{eventDate}} &middot; {{eventTime}}</div>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Lieu de l'événement</span>
+                    <div class="detail-value">{{eventLocation}}</div>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Montant Réglé</span>
+                    <div class="detail-value">{{eventPrice}}</div>
+                </div>
+            </div>
+
+            <div class="ticket-box">
+                <div class="ticket-label">Votre Billet d'Accès</div>
+                <div class="ticket-number">{{ticketNumber}}</div>
+                <div class="ticket-instruction">Veuillez présenter ce numéro à l'entrée.</div>
+            </div>
+
+            <div class="cta-section">
+                <a href="{{frontendUrl}}/my-reservations" class="cta-button">Consulter mes réservations</a>
+            </div>
+
+            <p class="info-text" style="font-size: 13px; color: #666; margin-top: 50px;">
+                Toute l'équipe d'Eventia se réjouit de vous accueillir. Pour toute modification ou annulation, veuillez
+                vous référer à votre espace personnel.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p class="footer-text">
+                &copy; 2026 EVENTIA &middot; Excellence et Partage<br>
+                Ceci est un message automatique, merci de ne pas y répondre directement.
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

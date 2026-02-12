@@ -7,6 +7,7 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +15,7 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private mailService: MailService,
   ) { }
 
   // Générer les tokens (access + refresh)
@@ -71,6 +73,15 @@ export class AuthService {
       // Hasher et sauvegarder le refresh token
       const hashedRefreshToken = await this.hashData(tokens.refreshToken);
       await this.updateRefreshToken(userId, hashedRefreshToken);
+
+      // Send welcome email (fire-and-forget)
+      this.mailService.sendWelcomeEmail({
+        email: savedUser.email,
+        first_name: savedUser.first_name,
+        last_name: savedUser.last_name,
+      }).catch(err => {
+        // Already logged in MailService, just prevent unhandled promise rejection
+      });
 
       return {
         access_token: tokens.accessToken,

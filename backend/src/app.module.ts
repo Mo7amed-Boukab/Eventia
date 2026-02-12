@@ -11,6 +11,7 @@ import { UsersModule } from './users/users.module';
 import { EventsModule } from './events/events.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { StatsModule } from './stats/stats.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { StatsModule } from './stats/stats.module';
       limit: 100, // 100 requests per minute (default global limit)
     }]),
     DatabaseModule,
+    MailModule,
     AuthModule,
     UsersModule,
     EventsModule,

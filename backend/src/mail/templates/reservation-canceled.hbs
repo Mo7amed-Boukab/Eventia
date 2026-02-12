@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Annulation de réservation - Eventia</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #ffffff;
+            margin: 0;
+            padding: 0;
+            color: #1A1A1A;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            border: 1px solid #f0f0f0;
+        }
+
+        .header {
+            background-color: #1A1A1A;
+            padding: 50px 30px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: #FFFFFF;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .logo-dot {
+            color: #C5A059;
+        }
+
+        .content {
+            padding: 40px 50px;
+            background-color: #ffffff;
+        }
+
+        .greeting {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #1A1A1A;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background-color: #fffbeb;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 8px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 2px;
+            margin-bottom: 30px;
+        }
+
+        .info-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #444444;
+            margin-bottom: 30px;
+        }
+
+        .event-details {
+            border: 1px solid #f0f0f0;
+            border-radius: 4px;
+            padding: 30px;
+            margin: 40px 0;
+        }
+
+        .event-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #1A1A1A;
+        }
+
+        .detail-row {
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .detail-label {
+            color: #888888;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .detail-value {
+            font-weight: 500;
+            color: #1A1A1A;
+        }
+
+        .cta-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: #1A1A1A;
+            color: #FFFFFF !important;
+            padding: 16px 36px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 2px;
+        }
+
+        .footer {
+            padding: 40px;
+            text-align: center;
+            background-color: #fcfcfc;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .footer-text {
+            font-size: 11px;
+            color: #888888;
+            letter-spacing: 0.5px;
+            line-height: 1.8;
+        }
+
+        .divider {
+            width: 40px;
+            height: 2px;
+            background-color: #f59e0b;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">EVENTIA<span class="logo-dot">.</span></div>
+        </div>
+
+        <div class="content">
+            <span class="status-badge">Réservation annulée</span>
+
+            <h1 class="greeting">Bonjour {{firstName}},</h1>
+
+            <p class="info-text">
+                Nous vous confirmons que votre réservation pour l'événement ci-dessous a été annulée.
+            </p>
+
+            <div class="event-details">
+                <div class="event-title">{{eventTitle}}</div>
+                <div class="divider"></div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Événement</span>
+                    <div class="detail-value">{{eventTitle}}</div>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Date initiale</span>
+                    <div class="detail-value">{{eventDate}}</div>
+                </div>
+            </div>
+
+            <p class="info-text">
+                Si cette demande n'émane pas de vous ou si vous avez changé d'avis, nous vous invitons à nous contacter
+                dans les plus brefs délais ou à effectuer une nouvelle réservation.
+            </p>
+
+            <div class="cta-section">
+                <a href="{{frontendUrl}}/events" class="cta-button">Explorer nos sessions</a>
+            </div>
+
+            <p class="info-text" style="font-size: 13px; color: #666; margin-top: 50px;">
+                Au plaisir de vous retrouver prochainement sur Eventia.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p class="footer-text">
+                &copy; 2026 EVENTIA &middot; Excellence et Partage<br>
+                Ceci est un message automatique, merci de ne pas y répondre directement.
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
