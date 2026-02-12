@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useToastStore } from "@/stores/toastStore";
+import { loginSchema } from "@/lib/validations";
+import { validateForm } from "@/lib/utils/validateForm";
 
 const LoginForm: React.FC = () => {
     const router = useRouter();
@@ -61,17 +63,10 @@ const LoginForm: React.FC = () => {
         setFieldErrors({});
         setGeneralError("");
 
-        const newErrors: Record<string, string> = {};
-        if (!email) newErrors.email = "L'email est obligatoire";
-        if (!password) newErrors.password = "Le mot de passe est obligatoire";
-
-        if (Object.keys(newErrors).length > 0) {
-            setFieldErrors(newErrors);
-            return;
-        }
-
-        if (password.length < 6) {
-            setFieldErrors({ password: "Le mot de passe doit contenir au moins 6 caractères" });
+        // Validation avec Zod
+        const result = validateForm(loginSchema, { email, password });
+        if (!result.success) {
+            setFieldErrors(result.errors);
             return;
         }
 

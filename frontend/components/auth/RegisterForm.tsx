@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useToastStore } from "@/stores/toastStore";
+import { registerSchema } from "@/lib/validations";
+import { validateForm } from "@/lib/utils/validateForm";
 
 const RegisterForm: React.FC = () => {
     const router = useRouter();
@@ -61,25 +63,16 @@ const RegisterForm: React.FC = () => {
         setFieldErrors({});
         setGeneralError("");
 
-        const newErrors: Record<string, string> = {};
-        if (!firstName) newErrors.firstName = "Le prénom est obligatoire";
-        if (!lastName) newErrors.lastName = "Le nom est obligatoire";
-        if (!email) newErrors.email = "L'email est obligatoire";
-        if (!password) newErrors.password = "Le mot de passe est obligatoire";
+        // Validation avec Zod
+        const result = validateForm(registerSchema, {
+            first_name: firstName,
+            last_name: lastName,
+            email,
+            password
+        });
 
-        if (Object.keys(newErrors).length > 0) {
-            setFieldErrors(newErrors);
-            return;
-        }
-
-        if (password.length < 6) {
-            setFieldErrors({ password: "Le mot de passe doit contenir au moins 6 caractères" });
-            return;
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            setFieldErrors({ email: "Veuillez entrer une adresse email valide" });
+        if (!result.success) {
+            setFieldErrors(result.errors);
             return;
         }
 

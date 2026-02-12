@@ -19,6 +19,8 @@ import {
     Users
 } from "lucide-react";
 import { eventService } from "@/lib/services/eventService";
+import { eventSchema } from "@/lib/validations";
+import { validateForm } from "@/lib/utils/validateForm";
 
 // Custom Select Component
 interface CustomSelectProps {
@@ -126,21 +128,22 @@ export default function CreateEventForm() {
     const handleSave = async (e: React.FormEvent, status: "DRAFT" | "PUBLISHED") => {
         e.preventDefault();
 
-        // Validation logic
-        const newErrors: Record<string, string> = {};
-        if (!formData.title.trim()) newErrors.title = "Le titre est obligatoire";
-        if (!formData.description.trim()) newErrors.description = "La description est obligatoire";
-        if (!formData.category) newErrors.category = "Veuillez choisir une catégorie";
-        if (!formData.date) newErrors.date = "La date est obligatoire";
-        if (!formData.time) newErrors.time = "L'heure est obligatoire";
-        if (!formData.location.trim()) newErrors.location = "Le lieu est obligatoire";
-        if (!formData.price) newErrors.price = "Le prix est obligatoire";
-        if (!formData.maxParticipants) newErrors.maxParticipants = "Le max des Participants est obligatoire";
+        // Validation avec Zod
+        const result = validateForm(eventSchema, {
+            title: formData.title,
+            description: formData.description,
+            category: formData.category,
+            date: formData.date,
+            time: formData.time,
+            location: formData.location,
+            price: formData.price,
+            maxParticipants: formData.maxParticipants,
+        });
 
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
+        if (!result.success) {
+            setErrors(result.errors);
             // Scroll to the first error
-            const firstErrorKey = Object.keys(newErrors)[0];
+            const firstErrorKey = Object.keys(result.errors)[0];
             const element = document.getElementsByName(firstErrorKey)[0] || document.getElementById(firstErrorKey);
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });

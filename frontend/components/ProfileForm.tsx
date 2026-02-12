@@ -10,6 +10,8 @@ import { useToastStore } from "@/stores/toastStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { updateProfileSchema, changePasswordSchema } from "@/lib/validations";
+import { validateForm } from "@/lib/utils/validateForm";
 
 export default function ProfileForm() {
     const { user: authUser, setUser: setAuthUser, logout, isLoading: authLoading } = useAuthStore();
@@ -60,6 +62,19 @@ export default function ProfileForm() {
 
     const handleProfileSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validation avec Zod
+        const result = validateForm(updateProfileSchema, {
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+        });
+
+        if (!result.success) {
+            const firstError = Object.values(result.errors)[0];
+            toast.error(firstError);
+            return;
+        }
+
         try {
             setSaving(true);
             const updatedUser = await userService.updateMe({
@@ -77,8 +92,17 @@ export default function ProfileForm() {
 
     const handlePasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (passwordData.newPassword !== passwordData.confirmPassword) {
-            toast.error("Les nouveaux mots de passe ne correspondent pas");
+
+        // Validation avec Zod
+        const result = validateForm(changePasswordSchema, {
+            oldPassword: passwordData.oldPassword,
+            newPassword: passwordData.newPassword,
+            confirmPassword: passwordData.confirmPassword,
+        });
+
+        if (!result.success) {
+            const firstError = Object.values(result.errors)[0];
+            toast.error(firstError);
             return;
         }
 
