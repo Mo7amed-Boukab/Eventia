@@ -65,16 +65,28 @@ export const useAuthStore = create<AuthState>()(
                 } catch (err) {
                     console.error('Logout API call failed:', err);
                 } finally {
+                    // Clear persisted state from localStorage
+                    localStorage.removeItem('auth-storage');
                     set({ user: null, isAuthenticated: false, error: null });
                 }
             },
 
             checkAuth: async () => {
+                // Utiliser le state persisté comme hint
+                const persisted = localStorage.getItem('auth-storage');
+                if (!persisted) {
+                    // Pas de session persistée → visiteur, pas d'appel API
+                    set({ user: null, isAuthenticated: false, isLoading: false });
+                    return;
+                }
+
                 try {
                     // Cookie is sent automatically — server validates
                     const userData = await authService.getProfile();
                     set({ user: userData, isAuthenticated: true, isLoading: false });
                 } catch {
+                    // Cookie expiré → nettoyer le persist
+                    localStorage.removeItem('auth-storage');
                     set({ user: null, isAuthenticated: false, isLoading: false });
                 }
             },
@@ -88,6 +100,7 @@ export const useAuthStore = create<AuthState>()(
             },
 
             resetStore: () => {
+                localStorage.removeItem('auth-storage');
                 set({ user: null, isAuthenticated: false, isLoading: false, error: null });
             },
         }),

@@ -32,11 +32,11 @@ apiClient.interceptors.response.use(
                 // Retry the original request — new access_token cookie is set
                 return apiClient(originalRequest);
             } catch {
-                // Refresh failed — reset Zustand state and redirect
+                // Refresh failed — reset Zustand state
+                // NE PAS rediriger — ProtectedRoute gère la navigation
                 import('@/stores/authStore').then(({ useAuthStore }) => {
                     useAuthStore.getState().resetStore();
                 });
-                window.location.href = '/login';
                 return Promise.reject(error);
             }
         }

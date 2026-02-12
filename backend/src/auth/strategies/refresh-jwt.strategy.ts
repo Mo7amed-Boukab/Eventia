@@ -10,13 +10,17 @@ export class RefreshJwtStrategy extends PassportStrategy(
   'jwt-refresh',
 ) {
   constructor(private configService: ConfigService) {
+    const refreshSecret = configService.get<string>('JWT_REFRESH_SECRET');
+
+    if (!refreshSecret) {
+      throw new Error('JWT_REFRESH_SECRET environment variable is required');
+    }
+
     super({
       jwtFromRequest: (req: Request) => {
         return req?.cookies?.refresh_token || null;
       },
-      secretOrKey:
-        configService.get<string>('JWT_REFRESH_SECRET') ||
-        'default-refresh-secret',
+      secretOrKey: refreshSecret,
       passReqToCallback: true,
     } as any);
   }

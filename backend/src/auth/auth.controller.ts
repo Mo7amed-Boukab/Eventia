@@ -15,12 +15,14 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshJwtAuthGuard } from './guards/refresh-jwt-auth.guard';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
   @Post('register')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute
   async register(
     @Body() registerDto: RegisterDto,
     @Res({ passthrough: true }) res: express.Response,
@@ -32,6 +34,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: express.Response,
@@ -44,6 +47,7 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @UseGuards(RefreshJwtAuthGuard)
+  @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 requests per minute
   async refresh(
     @Request() req,
     @Res({ passthrough: true }) res: express.Response,
@@ -70,8 +74,8 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  getProfile(@Request() req) {
-    return req.user;
+  async getProfile(@Request() req) {
+    return this.authService.getProfile(req.user.userId);
   }
 
   // ─── Cookie Helpers ─────────────────────────────────────────
@@ -82,26 +86,42 @@ export class AuthController {
     refreshToken: string,
   ) {
     const isProduction = process.env.NODE_ENV === 'production';
+    const sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') ||
+      (isProduction ? 'none' : 'lax');
 
-    res.cookie('access_token', accessToken, {
+    const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      sameSite,
+      domain: process.env.COOKIE_DOMAIN || undefined,
+    };
+
+    res.cookie('access_token', accessToken, {
+      ...cookieOptions,
       maxAge: 15 * 60 * 1000, // 15 minutes
       path: '/',
     });
 
     res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      ...cookieOptions,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/auth/refresh',
     });
   }
 
   private clearAuthCookies(res: express.Response) {
-    res.clearCookie('access_token', { path: '/' });
-    res.clearCookie('refresh_token', { path: '/auth/refresh' });
+    const isProduction = process.env.NODE_ENV === 'production';
+    const sameSite = (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') ||
+      (isProduction ? 'none' : 'lax');
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite,
+      domain: process.env.COOKIE_DOMAIN || undefined,
+    };
+
+    res.clearCookie('access_token', { ...cookieOptions, path: '/' });
+    res.clearCookie('refresh_token', { ...cookieOptions, path: '/auth/refresh' });
   }
 }

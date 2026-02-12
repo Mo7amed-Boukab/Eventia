@@ -1,4 +1,5 @@
 import { Controller, Get, Patch, Delete, Param, Body, UseGuards, Request } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { UsersService } from './users.service';
 import { UserRole } from './schemas/user.schema';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -21,6 +22,7 @@ export class UsersController {
     }
 
     @Patch('me/password')
+    @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 password changes per minute
     updateMyPassword(@Request() req, @Body() body) {
         const { oldPassword, newPassword } = body;
         return this.usersService.updatePassword(req.user.userId, oldPassword, newPassword);

@@ -10,6 +10,7 @@ import {
     Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { Throttle } from '@nestjs/throttler';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -23,6 +24,7 @@ export class ReservationsController {
 
     @Roles(UserRole.PARTICIPANT)
     @UseGuards(JwtAuthGuard, RolesGuard)
+    @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 reservations per minute
     @Post()
     create(@Request() req, @Body() createReservationDto: CreateReservationDto) {
         return this.reservationsService.create(
@@ -80,6 +82,7 @@ export class ReservationsController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 PDF generations per minute
     @Get(':id/ticket')
     async getTicket(
         @Param('id') id: string,

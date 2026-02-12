@@ -182,4 +182,25 @@ export class AuthService {
     await this.updateRefreshToken(userId, null);
     return { message: 'Déconnexion réussie' };
   }
+
+  // ----------------------------------------------------------------------
+  // Récupérer le profil complet de l'utilisateur
+  async getProfile(userId: string) {
+    const user = await this.userModel
+      .findById(userId)
+      .select('-password -refreshToken')
+      .exec();
+
+    if (!user) {
+      throw new UnauthorizedException('Utilisateur non trouvé');
+    }
+
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
+    };
+  }
 }

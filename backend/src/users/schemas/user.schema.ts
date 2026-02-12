@@ -17,7 +17,12 @@ export class User {
   @Prop({ required: true })
   last_name: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+  })
   email: string;
 
   @Prop({ required: true })
