@@ -12,7 +12,7 @@ jest.mock('@/lib/services/eventService');
 jest.mock('@/lib/services/reservationService');
 
 describe('Reservation Flow', () => {
-    const mockEvent = {
+    const mockPaidEvent = {
         _id: '123',
         title: 'Test Event',
         description: 'Test Description',
@@ -24,15 +24,39 @@ describe('Reservation Flow', () => {
         maxParticipants: 100,
     };
 
+    const mockFreeEvent = {
+        ...mockPaidEvent,
+        price: 0,
+    };
+
     beforeEach(() => {
         (useParams as jest.Mock).mockReturnValue({ id: '123' });
         (useRouter as jest.Mock).mockReturnValue({ push: jest.fn() });
-        (eventService.getById as jest.Mock).mockResolvedValue(mockEvent);
         (reservationService.getStatus as jest.Mock).mockResolvedValue({ isReserved: false });
     });
 
-    it('should allow a participant to book an event', async () => {
+    it('should redirect to checkout for paid events', async () => {
+        const mockPush = jest.fn();
+        (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
         (useAuthStore as unknown as jest.Mock).mockReturnValue({ isAuthenticated: true, user: { role: 'PARTICIPANT' } });
+        (eventService.getById as jest.Mock).mockResolvedValue(mockPaidEvent);
+
+        render(<PublicEventDetails />);
+
+        // Wait for event to load
+        await waitFor(() => expect(screen.getByText('Test Event')).toBeInTheDocument());
+
+        const reserveButton = screen.getByRole('button', { name: /Réserver mon ticket/i });
+        fireEvent.click(reserveButton);
+
+        await waitFor(() => {
+            expect(mockPush).toHaveBeenCalledWith('/checkout/123');
+        });
+    });
+
+    it('should allow a participant to book a free event directly', async () => {
+        (useAuthStore as unknown as jest.Mock).mockReturnValue({ isAuthenticated: true, user: { role: 'PARTICIPANT' } });
+        (eventService.getById as jest.Mock).mockResolvedValue(mockFreeEvent);
         (reservationService.create as jest.Mock).mockResolvedValue({ _id: 'res123', status: 'PENDING' });
 
         render(<PublicEventDetails />);
@@ -53,6 +77,7 @@ describe('Reservation Flow', () => {
         (useAuthStore as unknown as jest.Mock).mockReturnValue({ isAuthenticated: false });
         const mockPush = jest.fn();
         (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
+        (eventService.getById as jest.Mock).mockResolvedValue(mockFreeEvent);
 
         render(<PublicEventDetails />);
 
