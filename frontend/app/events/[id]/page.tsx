@@ -83,12 +83,22 @@ export default function PublicEventDetails() {
 
     const handleBooking = async () => {
         if (!isAuthenticated) {
-            // Encode the current URL to redirect back after login
             const returnUrl = encodeURIComponent(`/events/${id}`);
             router.push(`/login?redirect=${returnUrl}`);
             return;
         }
 
+        // If price > 0, redirect to dedicated checkout page
+        if (event && event.price > 0) {
+            router.push(`/checkout/${id}`);
+            return;
+        }
+
+        // Free event: process directly
+        processBooking();
+    };
+
+    const processBooking = async () => {
         try {
             setBookingLoading(true);
             setBookingError("");
